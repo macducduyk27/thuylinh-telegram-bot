@@ -104,7 +104,7 @@ bot.on("message", async (msg) => {
   }
 
   // Tin nhắn không hợp lệ
-  await bot.sendMessage(chatId, "❌ Mình không hiểu tin nhắn của bạn. Vui lòng chọn nhiệm vụ hoặc gửi hình ảnh minh chứng.");
+  await bot.sendMessage(chatId, "❌ Mình không hiểu tin nhắn của bạn. Vui lòng chọn nhiệm vụ hoặc gửi hình ảnh minh chứng cho @thuylinhnei .");
 });
 
 console.log("Bot is running...");

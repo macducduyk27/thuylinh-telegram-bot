@@ -49,27 +49,21 @@ Phải hiện: _invited by user Thuỳ Linh_ mới được em nhé ✅`,
 
   "📌 Nhiệm vụ 2": `🔥 *NV2: KIẾM TIỀN COMMENT THREAD*
 
-📌 *Cách làm:*
-Em lên Thread rồi gửi hình ảnh dưới các post rồi chụp màn hình lúc đã CMT là được ✅
+📌 *Cách làm:*  
+LẤY ẢNH VÀ HƯỚNG DẪN Ở @thuylinhnei
 
-💵 *CÁCH TÍNH LƯƠNG:*
-- 1 CMT Thread = 5K
-- Làm càng nhiều càng tốt, nhận lương theo số CMT đã làm
-
-📸 Làm xong gửi hình ảnh minh chứng để được duyệt nhé 💖`,
+💵 *CÁCH TÍNH LƯƠNG:*  
+- 1 CMT Thread = 5K  
+- Làm càng nhiều càng tốt, nhận lương theo số CMT đã làm`,
 
   "📌 Nhiệm vụ 3": `🔥 *NV3: CÔNG VIỆC TRÊN TIKTOK*
 
-📌 *CÁCH THỰC HIỆN CÔNG VIỆC:*
-• Bước 1: Lưu hình ảnh trên lại 👆👆👆  
-• Bước 2: Cách CMT trên TikTok  
-  - Search trên thanh tìm kiếm (Tuyển dụng, MMO, Kiếm tiền online, ...)  
-  - Ấn vào 1 clip bất kì, comment REP CMT của những người tìm việc (MỚI NHẤT) trong video đó  
-• Bước 3: Ấn vào phần ảnh trong bàn phím và gửi hình ảnh đã lưu 👏👏
+📌 *CÁCH THỰC HIỆN CÔNG VIỆC:*  
+LẤY ẢNH VÀ HƯỚNG DẪN Ở @thuylinhnei
 
-💵 *CÁCH TÍNH LƯƠNG:*
-- 1 CMT TikTok = 6K  
-- Ít nhất 20 CMT`  
+💵 *CÁCH TÍNH LƯƠNG:*  
+- 1 CMT = 5K  
+- Ít nhất 20 CMT`
 };
 
 // ===== XỬ LÝ TIN NHẮN =====
@@ -82,15 +76,7 @@ bot.on("message", async (msg) => {
 
   // Nếu tin nhắn là nhiệm vụ
   if (tasks[text]) {
-    if (text === "📌 Nhiệm vụ 2") {
-      // NV2 gửi kèm ảnh minh họa
-      await bot.sendPhoto(chatId, "./images/nv2_example.jpg", {
-        caption: tasks[text],
-        parse_mode: "Markdown"
-      });
-    } else {
-      await bot.sendMessage(chatId, tasks[text], { parse_mode: "Markdown" });
-    }
+    await bot.sendMessage(chatId, tasks[text], { parse_mode: "Markdown" });
     return;
   }
 

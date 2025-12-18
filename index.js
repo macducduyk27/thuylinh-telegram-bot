@@ -25,7 +25,8 @@ bot.onText(/\/start/, (msg) => {
         keyboard: [
           [{ text: "📌 Nhiệm vụ 1" }],
           [{ text: "📌 Nhiệm vụ 2" }],
-          [{ text: "📌 Nhiệm vụ 3" }]
+          [{ text: "📌 Nhiệm vụ 3" }],
+          [{ text: "✅ Đã xong" }]  // Nút mới
         ],
         resize_keyboard: true
       }
@@ -60,9 +61,7 @@ Phải hiện: _invited by user Thuỳ Linh_ mới được em nhé ✅`,
 - 1 CMT = 5K
 - Đủ 20 CMT là được rút lương
 - ❌ KHÔNG GIỚI HẠN số lượng
-- CMT càng nhiều → thu nhập càng cao
-Lấy Ảnh Và Xem Video Hướng Dẫn Ở Đây
-                 ⬇️⬇️⬇️`,
+- CMT càng nhiều → thu nhập càng cao`,
     button: { text: "Bấm vào đây", url: "https://t.me/thuylinhnei1/38" }
   },
 
@@ -78,9 +77,7 @@ Lấy Ảnh Và Xem Video Hướng Dẫn Ở Đây
 - 1 CMT = 5K
 - Đủ 20 CMT là được rút lương
 - ❌ KHÔNG GIỚI HẠN số lượng
-- CMT càng nhiều → thu nhập càng cao
-Lấy Ảnh Và Xem Video Hướng Dẫn Ở Đây 
-                 ⬇️⬇️⬇️`,
+- CMT càng nhiều → thu nhập càng cao`,
     button: { text: "Bấm vào đây", url: "https://t.me/thuylinhnei1/42" }
   }
 };
@@ -113,11 +110,25 @@ bot.on("message", async (msg) => {
     return;
   }
 
+  // Nếu nhấn nút "Đã xong"
+  if (text === "✅ Đã xong") {
+    await bot.sendMessage(chatId,
+      "🎉 Chúc mừng bạn đã hoàn thành đủ 3 Nhiệm vụ! Giờ hãy nhấn vào link dưới để gửi sản phẩm:", 
+      {
+        parse_mode: "Markdown",
+        reply_markup: {
+          inline_keyboard: [[{ text: "Ấn vào đây", url: "https://t.me/thuylinhnei" }]]
+        }
+      }
+    );
+    return;
+  }
+
   // Xử lý hình ảnh minh chứng
   if (msg.photo) {
     await bot.sendMessage(
       chatId,
-      "✅ Không gửi hình ảnh ở đây. Bạn nhớ gửi ảnh về @thuylinhnei để được trả công nhé! Không gửi ảnh ở đây "
+      "KHÔNG GỬI HÌNH ẢNH VÀO ĐÂY. Bạn nhớ gửi về @thuylinhnei để được duyệt nhé!"
     );
 
     const adminChatId = 123456789; // <-- Thay bằng chat ID số của @thuylinhnei
@@ -129,7 +140,7 @@ bot.on("message", async (msg) => {
   // Tin nhắn không hợp lệ
   await bot.sendMessage(
     chatId,
-    "❌ Mình không hiểu tin nhắn của bạn. Vui lòng chọn nhiệm vụ hoặc gửi hình ảnh minh chứng cho @thuylinhnei ."
+    "❌ Mình không hiểu tin nhắn của bạn. Vui lòng chọn nhiệm vụ hoặc gửi hình ảnh minh chứng cho @thuylinhnei."
   );
 });
 

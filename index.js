@@ -36,8 +36,7 @@ const tasks = {
   "📌 Nhiệm vụ 1": `🔥 *NV1: Tham Gia Các Hội Nhóm*  
 💰 *CÔNG: 50K*
 
-🤖 BOT 1:
-https://t.me/Kiemtien8989_bot?start=r03486044000
+🤖 BOT 1: [Nhấn vào đây](https://t.me/Kiemtien8989_bot?start=r03486044000)
 
 📌 *Cách làm:*
 - Nhấp vào tất cả kênh / nhóm
@@ -68,7 +67,7 @@ bot.on("message", async (msg) => {
   const chatId = msg.chat.id;
   const text = msg.text;
 
-  if (!text) return;
+  if (!text && !msg.photo) return;
   if (text === "/start") return;
 
   // Nếu tin nhắn là nhiệm vụ
@@ -89,11 +88,14 @@ bot.on("message", async (msg) => {
     );
 
     // Forward ảnh về admin
-    const adminChatId = "@thuylinhnei"; // hoặc ID số
+    const adminChatId = "@thuylinhnei"; // hoặc ID số nếu muốn
     bot.forwardMessage(adminChatId, chatId, msg.message_id);
 
     return;
   }
+
+  // Nếu không nhận diện được tin nhắn
+  await bot.sendMessage(chatId, "❌ Mình không hiểu tin nhắn của bạn. Vui lòng chọn nhiệm vụ hoặc gửi hình ảnh minh chứng.");
 });
 
 console.log("Bot is running...");

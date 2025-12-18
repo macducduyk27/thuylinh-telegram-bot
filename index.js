@@ -35,7 +35,7 @@ bot.onText(/\/start/, (msg) => {
 // ===== NHIỆM VỤ =====
 const tasks = {
   "📌 Nhiệm vụ 1": `🔥 *NV1: Tham Gia Các Hội Nhóm*  
-💰 *CÔNG: 50K*
+💰 *CÔNG: 20K*
 
 🤖 BOT 1: [Nhấn vào đây](https://t.me/Kiemtien8989_bot?start=r03486044000)
 
@@ -49,20 +49,28 @@ Phải hiện: _invited by user Thuỳ Linh_ mới được em nhé ✅`,
 
   "📌 Nhiệm vụ 2": `🔥 *NV2: KIẾM TIỀN COMMENT THREAD*
 
-📌 *Cách làm:*  
+📌 *Cách làm:*
+- Lên Thread
+- Bình luận và gửi hình ảnh dưới các post
+- Chụp màn hình lúc đã CMT
 LẤY ẢNH VÀ HƯỚNG DẪN Ở @thuylinhnei
 
-💵 *CÁCH TÍNH LƯƠNG:*  
-- 1 CMT Thread = 5K  
-- Làm càng nhiều càng tốt, nhận lương theo số CMT đã làm`,
+💰 *Thu nhập:*
+- 1 CMT = 5K
+- Đủ 10 CMT là được rút lương
+- ❌ KHÔNG GIỚI HẠN số lượng
+- CMT càng nhiều → thu nhập càng cao`,
 
   "📌 Nhiệm vụ 3": `🔥 *NV3: CÔNG VIỆC TRÊN TIKTOK*
 
-📌 *CÁCH THỰC HIỆN CÔNG VIỆC:*  
+📌 *Cách CMT trên TikTok:*
+- Bạn search trên thanh tìm kiếm (Tuyển dụng, MMO, Kiếm tiền online,...)  
+- Ấn vào 1 clip bất kì, comment REP CMT của những người tìm việc (MỚI NHẤT) trong video đó !!!  
+- Chụp màn hình lúc đã CMT
 LẤY ẢNH VÀ HƯỚNG DẪN Ở @thuylinhnei
 
-💵 *CÁCH TÍNH LƯƠNG:*  
-- 1 CMT = 5K  
+💰 *Thu nhập:*
+- 1 CMT = 5K
 - Ít nhất 20 CMT`
 };
 
@@ -82,8 +90,6 @@ bot.on("message", async (msg) => {
 
   // Xử lý hình ảnh minh chứng
   if (msg.photo) {
-    const photo = msg.photo[msg.photo.length - 1];
-
     await bot.sendMessage(
       chatId,
       "✅ Hình ảnh minh chứng đã được gửi. Bạn nhớ gửi về @thuylinhnei để được duyệt nhé!"

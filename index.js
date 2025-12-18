@@ -6,11 +6,8 @@ if (!token) {
   process.exit(1);
 }
 
-// Tạo bot nhưng chưa start polling
+// Tạo bot và fix 409 Conflict
 const bot = new TelegramBot(token);
-
-// ===== FIX 409 CONFLICT =====
-// Dừng polling cũ nếu có, rồi start polling mới
 bot.stopPolling();
 bot.startPolling();
 
@@ -20,10 +17,8 @@ bot.onText(/\/start/, (msg) => {
 
   bot.sendMessage(
     chatId,
-    "🎉 *Chào mừng bạn đến với BOT THUỲ LINH* 🎉\n\n" +
-    "📌 *BẠN VUI LÒNG HOÀN THÀNH CÁC NHIỆM VỤ DƯỚI ĐÂY*\n" +
-    "📌 Sau khi hoàn thành, gửi kết quả về *@thuylinhnei*\n\n" +
-    "⬇️⬇️⬇️ *CÁC NHIỆM VỤ BÊN DƯỚI* ⬇️⬇️⬇️",
+    "🎉 *Chào Mừng CTV mới đến với BOT của Thuỳ Linh!* 🎉\n\n" +
+    "Các bạn ấn vào các nhiệm vụ dưới đây để hoàn thành rồi gửi cho @thuylinhnei để nhận lương. Chúc các bạn làm việc thật thành công ❤️",
     {
       parse_mode: "Markdown",
       reply_markup: {
@@ -53,33 +48,37 @@ const tasks = {
 ⚠️ *LƯU Ý:*  
 Phải hiện: _invited by user Thuỳ Linh_ mới được em nhé ✅`,
 
-  "📌 Nhiệm vụ 2": `🔥 *NV2: KIẾM TIỀN COMMENT THREAD*
+  "📌 Nhiệm vụ 2": {
+    text: `🔥 *NV2: CÔNG VIỆC TRÊN THREAD*
 
 📌 *Cách làm:*
 - Lên Thread
 - Bình luận và gửi hình ảnh dưới các post
 - Chụp màn hình lúc đã CMT
-LẤY ẢNH VÀ HƯỚNG DẪN Ở @thuylinhnei
 
 💰 *Thu nhập:*
 - 1 CMT = 5K
 - Đủ 20 CMT là được rút lương
 - ❌ KHÔNG GIỚI HẠN số lượng
 - CMT càng nhiều → thu nhập càng cao`,
+    button: { text: "Bấm vào đây", url: "https://t.me/thuylinhnei1/38" }
+  },
 
-  "📌 Nhiệm vụ 3": `🔥 *NV3: CÔNG VIỆC TRÊN TIKTOK*
+  "📌 Nhiệm vụ 3": {
+    text: `🔥 *NV3: CÔNG VIỆC TRÊN TIKTOK*
 
 📌 *Cách CMT trên TikTok:*
 - Search trên thanh tìm kiếm (Tuyển dụng, MMO, Kiếm tiền online,...)
 - Ấn vào 1 clip bất kì, comment REP CMT của người tìm việc (MỚI NHẤT)  
 - Chụp màn hình lúc đã CMT
-LẤY ẢNH VÀ HƯỚNG DẪN Ở @thuylinhnei
 
 💰 *Thu nhập:*
 - 1 CMT = 5K
 - Đủ 20 CMT là được rút lương
 - ❌ KHÔNG GIỚI HẠN số lượng
-- CMT càng nhiều → thu nhập càng cao`
+- CMT càng nhiều → thu nhập càng cao`,
+    button: { text: "Bấm vào đây", url: "https://t.me/thuylinhnei1/42" }
+  }
 };
 
 // ===== XỬ LÝ TIN NHẮN =====
@@ -94,7 +93,19 @@ bot.on("message", async (msg) => {
 
   // Nếu tin nhắn là nhiệm vụ
   if (tasks[text]) {
-    await bot.sendMessage(chatId, tasks[text], { parse_mode: "Markdown" });
+    const task = tasks[text];
+    if (typeof task === "string") {
+      // NV1 giữ nguyên, chỉ gửi text
+      await bot.sendMessage(chatId, task, { parse_mode: "Markdown" });
+    } else {
+      // NV2 và NV3 có button
+      await bot.sendMessage(chatId, task.text, {
+        parse_mode: "Markdown",
+        reply_markup: {
+          inline_keyboard: [[{ text: task.button.text, url: task.button.url }]]
+        }
+      });
+    }
     return;
   }
 
@@ -102,7 +113,7 @@ bot.on("message", async (msg) => {
   if (msg.photo) {
     await bot.sendMessage(
       chatId,
-      "✅ Hình ảnh minh chứng đã được gửi. Bạn nhớ gửi về @thuylinhnei để được duyệt nhé!"
+      "✅ Không gửi hình ảnh ở đây. Bạn nhớ gửi ảnh về @thuylinhnei để được trả công nhé! Không gửi ảnh ở đây "
     );
 
     const adminChatId = 123456789; // <-- Thay bằng chat ID số của @thuylinhnei

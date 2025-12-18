@@ -71,7 +71,9 @@ LẤY ẢNH VÀ HƯỚNG DẪN Ở @thuylinhnei
 
 💰 *Thu nhập:*
 - 1 CMT = 5K
-- Ít nhất 20 CMT`
+- Đủ 20 CMT là được rút lương
+- ❌ KHÔNG GIỚI HẠN số lượng
+- CMT càng nhiều → thu nhập càng cao`
 };
 
 // ===== XỬ LÝ TIN NHẮN =====

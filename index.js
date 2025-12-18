@@ -6,7 +6,13 @@ if (!token) {
   process.exit(1);
 }
 
-const bot = new TelegramBot(token, { polling: true });
+// Tạo bot nhưng chưa start polling
+const bot = new TelegramBot(token);
+
+// ===== FIX 409 CONFLICT =====
+// Dừng polling cũ nếu có, rồi start polling mới
+bot.stopPolling();
+bot.startPolling();
 
 // ===== /start =====
 bot.onText(/\/start/, (msg) => {
@@ -64,8 +70,8 @@ LẤY ẢNH VÀ HƯỚNG DẪN Ở @thuylinhnei
   "📌 Nhiệm vụ 3": `🔥 *NV3: CÔNG VIỆC TRÊN TIKTOK*
 
 📌 *Cách CMT trên TikTok:*
-- Bạn search trên thanh tìm kiếm (Tuyển dụng, MMO, Kiếm tiền online,...)  
-- Ấn vào 1 clip bất kì, comment REP CMT của những người tìm việc (MỚI NHẤT) trong video đó !!!  
+- Search trên thanh tìm kiếm (Tuyển dụng, MMO, Kiếm tiền online,...)
+- Ấn vào 1 clip bất kì, comment REP CMT của người tìm việc (MỚI NHẤT)  
 - Chụp màn hình lúc đã CMT
 LẤY ẢNH VÀ HƯỚNG DẪN Ở @thuylinhnei
 
@@ -80,6 +86,8 @@ LẤY ẢNH VÀ HƯỚNG DẪN Ở @thuylinhnei
 bot.on("message", async (msg) => {
   const chatId = msg.chat.id;
   const text = msg.text;
+
+  console.log("Received message:", text || "photo");
 
   if (!text && !msg.photo) return;
   if (text === "/start") return;
@@ -97,14 +105,17 @@ bot.on("message", async (msg) => {
       "✅ Hình ảnh minh chứng đã được gửi. Bạn nhớ gửi về @thuylinhnei để được duyệt nhé!"
     );
 
-    const adminChatId = "@thuylinhnei"; // hoặc chat ID số
+    const adminChatId = 123456789; // <-- Thay bằng chat ID số của @thuylinhnei
     bot.forwardMessage(adminChatId, chatId, msg.message_id);
 
     return;
   }
 
   // Tin nhắn không hợp lệ
-  await bot.sendMessage(chatId, "❌ Mình không hiểu tin nhắn của bạn. Vui lòng chọn nhiệm vụ hoặc gửi hình ảnh minh chứng cho @thuylinhnei .");
+  await bot.sendMessage(
+    chatId,
+    "❌ Mình không hiểu tin nhắn của bạn. Vui lòng chọn nhiệm vụ hoặc gửi hình ảnh minh chứng cho @thuylinhnei ."
+  );
 });
 
 console.log("Bot is running...");

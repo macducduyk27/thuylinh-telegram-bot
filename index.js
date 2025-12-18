@@ -61,7 +61,9 @@ Phải hiện: _invited by user Thuỳ Linh_ mới được em nhé ✅`,
 - 1 CMT = 5K
 - Đủ 20 CMT là được rút lương
 - ❌ KHÔNG GIỚI HẠN số lượng
-- CMT càng nhiều → thu nhập càng cao`,
+- CMT càng nhiều → thu nhập càng cao
+Lấy Ảnh Và Xem Video Hướng Dẫn Ở Đây 
+                    ⬇️⬇️⬇️`,
     button: { text: "Bấm vào đây", url: "https://t.me/thuylinhnei1/38" }
   },
 
@@ -77,7 +79,9 @@ Phải hiện: _invited by user Thuỳ Linh_ mới được em nhé ✅`,
 - 1 CMT = 5K
 - Đủ 20 CMT là được rút lương
 - ❌ KHÔNG GIỚI HẠN số lượng
-- CMT càng nhiều → thu nhập càng cao`,
+- CMT càng nhiều → thu nhập càng cao
+Lấy Ảnh Và Xem Video Hướng Dẫn Ở Đây 
+                     ⬇️⬇️⬇️`,
     button: { text: "Bấm vào đây", url: "https://t.me/thuylinhnei1/42" }
   }
 };

@@ -25,8 +25,7 @@ bot.onText(/\/start/, (msg) => {
         keyboard: [
           [{ text: "📌 Nhiệm vụ 1" }],
           [{ text: "📌 Nhiệm vụ 2" }],
-          [{ text: "📌 Nhiệm vụ 3" }],
-          [{ text: "✅ Đã xong" }]  // Nút mới
+          [{ text: "📌 Nhiệm vụ 3" }]
         ],
         resize_keyboard: true
       }
@@ -62,8 +61,9 @@ Phải hiện: _invited by user Thuỳ Linh_ mới được em nhé ✅`,
 - Đủ 20 CMT là được rút lương
 - ❌ KHÔNG GIỚI HẠN số lượng
 - CMT càng nhiều → thu nhập càng cao
-Lấy Ảnh Và Xem Video Hướng Dẫn Ở Đây 
-                    ⬇️⬇️⬇️`,
+
+👇👇👇
+*Bấm nút bên dưới để xem hướng dẫn và lấy ảnh*`,
     button: { text: "Bấm vào đây", url: "https://t.me/thuylinhnei1/38" }
   },
 
@@ -71,8 +71,8 @@ Lấy Ảnh Và Xem Video Hướng Dẫn Ở Đây
     text: `🔥 *NV3: CÔNG VIỆC TRÊN TIKTOK*
 
 📌 *Cách CMT trên TikTok:*
-- Search trên thanh tìm kiếm (Tuyển dụng, MMO, Kiếm tiền online,...)
-- Ấn vào 1 clip bất kì, comment REP CMT của người tìm việc (MỚI NHẤT)  
+- Search (Tuyển dụng, MMO, Kiếm tiền online,...)
+- Vào 1 clip → REP CMT người tìm việc (MỚI NHẤT)
 - Chụp màn hình lúc đã CMT
 
 💰 *Thu nhập:*
@@ -80,8 +80,9 @@ Lấy Ảnh Và Xem Video Hướng Dẫn Ở Đây
 - Đủ 20 CMT là được rút lương
 - ❌ KHÔNG GIỚI HẠN số lượng
 - CMT càng nhiều → thu nhập càng cao
-Lấy Ảnh Và Xem Video Hướng Dẫn Ở Đây 
-                     ⬇️⬇️⬇️`,
+
+👇👇👇
+*Bấm nút bên dưới để xem hướng dẫn và lấy ảnh*`,
     button: { text: "Bấm vào đây", url: "https://t.me/thuylinhnei1/42" }
   }
 };
@@ -91,19 +92,16 @@ bot.on("message", async (msg) => {
   const chatId = msg.chat.id;
   const text = msg.text;
 
-  console.log("Received message:", text || "photo");
-
   if (!text && !msg.photo) return;
   if (text === "/start") return;
 
-  // Nếu tin nhắn là nhiệm vụ
+  // Nếu bấm nhiệm vụ
   if (tasks[text]) {
     const task = tasks[text];
+
     if (typeof task === "string") {
-      // NV1 giữ nguyên, chỉ gửi text
       await bot.sendMessage(chatId, task, { parse_mode: "Markdown" });
     } else {
-      // NV2 và NV3 có button
       await bot.sendMessage(chatId, task.text, {
         parse_mode: "Markdown",
         reply_markup: {
@@ -114,37 +112,22 @@ bot.on("message", async (msg) => {
     return;
   }
 
-  // Nếu nhấn nút "Đã xong"
-  if (text === "✅ Đã xong") {
-    await bot.sendMessage(chatId,
-      "🎉 Chúc mừng bạn đã hoàn thành đủ 3 Nhiệm vụ! Giờ hãy nhấn vào link dưới để gửi sản phẩm:", 
-      {
-        parse_mode: "Markdown",
-        reply_markup: {
-          inline_keyboard: [[{ text: "Ấn vào đây", url: "https://t.me/thuylinhnei" }]]
-        }
-      }
-    );
-    return;
-  }
-
-  // Xử lý hình ảnh minh chứng
+  // Nhận ảnh minh chứng
   if (msg.photo) {
     await bot.sendMessage(
       chatId,
-      "KHÔNG GỬI HÌNH ẢNH VÀO ĐÂY. Bạn nhớ gửi về @thuylinhnei để được duyệt nhé!"
+      "✅ Đã nhận hình ảnh. Bạn nhớ gửi đủ sản phẩm cho Thuỳ Linh để được duyệt nhé!"
     );
 
-    const adminChatId = 123456789; // <-- Thay bằng chat ID số của @thuylinhnei
+    // ❗ Thay bằng CHAT ID SỐ của admin
+    const adminChatId = 123456789;
     bot.forwardMessage(adminChatId, chatId, msg.message_id);
-
     return;
   }
 
-  // Tin nhắn không hợp lệ
   await bot.sendMessage(
     chatId,
-    "❌ Mình không hiểu tin nhắn của bạn. Vui lòng chọn nhiệm vụ hoặc gửi hình ảnh minh chứng cho @thuylinhnei."
+    "❌ Mình không hiểu tin nhắn. Vui lòng chọn nhiệm vụ bên dưới."
   );
 });
 

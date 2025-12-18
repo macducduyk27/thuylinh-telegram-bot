@@ -1,12 +1,19 @@
 const TelegramBot = require("node-telegram-bot-api");
 
 const token = process.env.BOT_TOKEN;
+if (!token) {
+  console.error("❌ BOT_TOKEN is missing");
+  process.exit(1);
+}
+
 const bot = new TelegramBot(token, { polling: true });
 
-// /start
+// ===== /start =====
 bot.onText(/\/start/, (msg) => {
+  const chatId = msg.chat.id;
+
   bot.sendMessage(
-    msg.chat.id,
+    chatId,
     "🎉 Chào mừng bạn đã đến với BOT THUỲ LINH 🎉",
     {
       reply_markup: {
@@ -19,55 +26,58 @@ bot.onText(/\/start/, (msg) => {
   );
 });
 
-// Xử lý nút bấm
+// ===== XỬ LÝ TIN NHẮN =====
 bot.on("message", (msg) => {
-  const text = msg.text;
   const chatId = msg.chat.id;
+  const text = msg.text;
 
+  // Tránh trả lời lại khi gõ /start
+  if (text === "/start") return;
+
+  // ===== NHIỆM VỤ 1 =====
   if (text === "📌 Nhiệm vụ 1") {
     bot.sendMessage(
       chatId,
-      `🔥 NV1: Tham Gia Các Hội Nhóm Ở Link Dưới Đây  
-💰 CÔNG: 50K
+      `🔥 *NV1: Tham Gia Các Hội Nhóm*  
+💰 *CÔNG: 50K*
 
 🤖 BOT 1:
 https://t.me/Kiemtien8989_bot?start=r03486044000
 
-📌 YÊU CẦU:
-- Nhấp vào tất cả kênh/nhóm
+📌 *Cách làm:*
+- Nhấp vào tất cả kênh / nhóm
 - Ấn Join hoặc Mute tham gia hết
-- Xong quay lại bot và ấn CHECK
+- Xong quay lại bot
 
-⚠️ LƯU Ý:
-Phải hiện: *invited by user Thuỳ Linh* mới được em nhé ✅`,
+⚠️ *LƯU Ý:*  
+Phải hiện: _invited by user Thuỳ Linh_ mới được em nhé ✅`,
       { parse_mode: "Markdown" }
     );
+    return;
   }
 
+  // ===== NHIỆM VỤ 2 =====
   if (text === "📌 Nhiệm vụ 2") {
     bot.sendMessage(
       chatId,
-      if (text === "📌 Nhiệm vụ 2") {
-  bot.sendMessage(
-    chatId,
-    `🔥 *NV2: KIẾM TIỀN BÌNH LUẬN THREAD* 🔥
+      `🔥 *NV2: KIẾM TIỀN COMMENT THREAD*
 
 📌 *Cách làm:*
-- Em lên Thread
+- Lên Thread
 - Bình luận và gửi hình ảnh dưới các post
-- Chụp màn hình lúc đã CMT là được
+- Chụp màn hình lúc đã CMT
 
 💰 *Thu nhập:*
-- Mỗi 1 CMT: *5K*
-- Đủ *10 CMT* là được *rút lương*
-- ❌ *KHÔNG GIỚI HẠN* số lượng làm
-- ✅ CMT càng nhiều → *thu nhập càng cao*
+- 1 CMT = *5K*
+- Đủ *10 CMT* là được rút lương
+- ❌ *KHÔNG GIỚI HẠN* số lượng
+- CMT càng nhiều → thu nhập càng cao
 
-📸 *Yêu cầu:*
-- Chụp rõ màn hình lúc đã comment
-- Gửi lại cho admin để xác nhận
+📸 Làm xong gửi hình ảnh minh chứng để được duyệt nhé 💖`,
+      { parse_mode: "Markdown" }
+    );
+    return;
+  }
+});
 
-👉 Làm xong gửi minh chứng để được duyệt nhé 💖`,
-    { parse_mode: "Markdown" }
-  );
-}
+console.log("✅ Bot is running...");

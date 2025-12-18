@@ -47,7 +47,27 @@ Phải hiện: *invited by user Thuỳ Linh* mới được em nhé ✅`,
   if (text === "📌 Nhiệm vụ 2") {
     bot.sendMessage(
       chatId,
-      "📌 Nhiệm vụ 2 hiện chưa mở. Vui lòng quay lại sau nhé 😊"
-    );
-  }
-});
+      if (text === "📌 Nhiệm vụ 2") {
+  bot.sendMessage(
+    chatId,
+    `🔥 *NV2: KIẾM TIỀN BÌNH LUẬN THREAD* 🔥
+
+📌 *Cách làm:*
+- Em lên Thread
+- Bình luận và gửi hình ảnh dưới các post
+- Chụp màn hình lúc đã CMT là được
+
+💰 *Thu nhập:*
+- Mỗi 1 CMT: *5K*
+- Đủ *10 CMT* là được *rút lương*
+- ❌ *KHÔNG GIỚI HẠN* số lượng làm
+- ✅ CMT càng nhiều → *thu nhập càng cao*
+
+📸 *Yêu cầu:*
+- Chụp rõ màn hình lúc đã comment
+- Gửi lại cho admin để xác nhận
+
+👉 Làm xong gửi minh chứng để được duyệt nhé 💖`,
+    { parse_mode: "Markdown" }
+  );
+}

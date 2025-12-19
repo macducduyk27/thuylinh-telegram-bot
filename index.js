@@ -1,4 +1,5 @@
 const TelegramBot = require("node-telegram-bot-api");
+const express = require("express");
 
 const token = process.env.BOT_TOKEN;
 if (!token) {
@@ -6,7 +7,17 @@ if (!token) {
   process.exit(1);
 }
 
-// Khởi tạo bot (polling)
+// ===== EXPRESS (để Render không sleep) =====
+const app = express();
+app.get("/", (req, res) => {
+  res.send("Bot is running");
+});
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log("🌐 Web server running on port", PORT);
+});
+
+// ===== TELEGRAM BOT =====
 const bot = new TelegramBot(token, { polling: true });
 
 // ===== /start =====
@@ -44,7 +55,10 @@ const tasks = {
 - Ấn Join hoặc Mute tham gia hết
 - Quay lại bot sau khi hoàn thành
 
-➡️ Hoàn thành xong ấn sang *Nhiệm vụ 2*`,
+⚠️ *LƯU Ý:*  
+Phải hiện: _invited by user Thuỳ Linh_ mới được em nhé ✅
+
+➡️ *Hoàn thành xong ấn sang Nhiệm vụ 2*`,
 
   "📌 Nhiệm vụ 2": {
     text: `🔥 *NV2: CÔNG VIỆC TRÊN THREAD*
@@ -60,7 +74,7 @@ const tasks = {
 - ❌ Không giới hạn
 - CMT càng nhiều → thu nhập càng cao
 
-⬇️ Bấm nút bên dưới để xem hướng dẫn và lấy ảnh`,
+👇 Bấm nút bên dưới để xem hướng dẫn và lấy ảnh`,
     button: { text: "Bấm vào đây", url: "https://t.me/thuylinhnei1/38" }
   },
 
@@ -68,9 +82,9 @@ const tasks = {
     text: `🔥 *NV3: CÔNG VIỆC TRÊN TIKTOK*
 
 📌 *Cách làm:*
-- Search từ khóa tuyển dụng
-- REP comment người tìm việc (mới nhất)
-- Chụp màn hình lúc đã CMT
+- Search từ khoá tuyển dụng
+- Comment REP người tìm việc
+- Chụp màn hình
 
 💰 *Thu nhập:*
 - 1 CMT = 5K
@@ -78,36 +92,18 @@ const tasks = {
 - ❌ Không giới hạn
 - CMT càng nhiều → thu nhập càng cao
 
-⬇️ Bấm nút bên dưới để xem hướng dẫn và lấy ảnh`,
+👇 Bấm nút bên dưới để xem hướng dẫn và lấy ảnh`,
     button: { text: "Bấm vào đây", url: "https://t.me/thuylinhnei1/42" }
   }
 };
 
-// ===== XỬ LÝ TIN NHẮN =====
+// ===== MESSAGE HANDLER =====
 bot.on("message", async (msg) => {
   const chatId = msg.chat.id;
   const text = msg.text;
 
   if (!text) return;
   if (text === "/start") return;
-
-  if (text === "✅ Đã xong") {
-    await bot.sendMessage(
-      chatId,
-      "🎉 *Chúc mừng bạn đã hoàn thành đủ 3 Nhiệm Vụ!*\n\n" +
-      "👉 Giờ bạn hãy nhắn cho Thuỳ Linh gửi đủ sản phẩm đã làm\n" +
-      "⬇️⬇️⬇️",
-      {
-        parse_mode: "Markdown",
-        reply_markup: {
-          inline_keyboard: [
-            [{ text: "Ấn vào đây", url: "https://t.me/thuylinhnei" }]
-          ]
-        }
-      }
-    );
-    return;
-  }
 
   if (tasks[text]) {
     const task = tasks[text];
@@ -117,10 +113,22 @@ bot.on("message", async (msg) => {
       await bot.sendMessage(chatId, task.text, {
         parse_mode: "Markdown",
         reply_markup: {
-          inline_keyboard: [[task.button]]
+          inline_keyboard: [[{ text: task.button.text, url: task.button.url }]]
         }
       });
     }
+    return;
+  }
+
+  if (text === "✅ Đã xong") {
+    await bot.sendMessage(
+      chatId,
+      "🎉 *Chúc mừng bạn đã hoàn thành đủ 3 Nhiệm Vụ!*\n\n" +
+      "👉 Giờ bạn hãy nhắn cho Thuỳ Linh gửi đủ sản phẩm đã làm\n" +
+      "👇👇👇\n" +
+      "[Ấn vào đây để sang Telegram cá nhân](https://t.me/thuylinhnei)",
+      { parse_mode: "Markdown" }
+    );
   }
 });
 

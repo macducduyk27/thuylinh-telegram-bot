@@ -157,9 +157,16 @@ bot.on("message", async (msg) => {
     return bot.sendMessage(
       chatId,
       "🎉 Chúc mừng bạn đã hoàn thành đủ 3 nhiệm vụ!\n" +
-      "👉 Giờ hãy nhắn cho Thuỳ Linh để báo cáo đã hoàn thành xong công việc"
-    );
-  }
+      "👉 Giờ hãy nhắn cho Thuỳ Linh để báo cáo đã hoàn thành xong công việc",
+      {
+      parse_mode: "Markdown",
+      reply_markup: {
+        inline_keyboard: [[{ text: "Ấn vào đây", url: "https://t.me/thuylinhnei" }]]
+      }
+    }
+  );
+  return;
+}
 
   // ===== CHỌN NHIỆM VỤ =====
   if (tasks[text]) {

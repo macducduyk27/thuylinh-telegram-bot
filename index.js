@@ -150,25 +150,29 @@ bot.on("message", async (msg) => {
 
   // ===== NÚT "ĐÃ XONG" =====
   if (text === "✅ Đã xong") {
-    if (state.task < 3 || state.photos < 20) {
+    if (
+      state.task < 3 || 
+      (state.task === 1 && state.photos < 1) || 
+      (state.task > 1 && state.photos < 20)
+    ) {
       return bot.sendMessage(
         chatId,
-        "❌ Bạn chưa hoàn thành đủ Nhiệm vụ 3 (20 ảnh). Vui lòng hoàn thành trước khi nhấn 'Đã xong'."
+        "❌ Bạn chưa hoàn thành đủ 3 nhiệm vụ. Vui lòng hoàn thành trước khi nhấn 'Đã xong'."
       );
     }
     return bot.sendMessage(
       chatId,
       "🎉 Chúc mừng bạn đã hoàn thành đủ 3 nhiệm vụ!\n" +
+      "⬇️ Bấm nút bên dưới để xem hướng dẫn và lấy ảnh\n" +
       "👉 Giờ hãy nhắn cho Thuỳ Linh để báo cáo đã hoàn thành xong công việc",
       {
-      parse_mode: "Markdown",
-      reply_markup: {
-        inline_keyboard: [[{ text: "Ấn vào đây", url: "https://t.me/thuylinhnei" }]]
+        parse_mode: "Markdown",
+        reply_markup: {
+          inline_keyboard: [[{ text: "Ấn vào đây", url: "https://t.me/thuylinhnei" }]]
+        }
       }
-    }
-  );
-  return;
-}
+    );
+  }
 
   // ===== CHỌN NHIỆM VỤ =====
   if (tasks[text]) {
@@ -219,21 +223,26 @@ bot.on("message", async (msg) => {
       `👤 User: ${user.first_name || ""}\n` +
       `🆔 ID: ${chatId}\n` +
       `📌 Nhiệm vụ: Nhiệm vụ ${state.task}\n` +
-      `📷 Ảnh: ${state.photos} / 20`
+      `📷 Ảnh: ${state.photos} ${state.task === 1 ? "/4" : "/20"}`
     );
 
     await bot.forwardMessage(ADMIN_ID, chatId, msg.message_id);
 
     // ===== THÔNG BÁO NGƯỜI GỬI =====
-    if (state.photos < 20) {
+    if (
+      (state.task === 1 && state.photos < 1) || 
+      (state.task === 1 && state.photos < 4) || 
+      (state.task > 1 && state.photos < 20)
+    ) {
+      const maxPhotos = state.task === 1 ? 4 : 20;
       await bot.sendMessage(
         chatId,
-        `📸 Đã nhận ${state.photos}/20 ảnh. Vui lòng gửi tiếp.`
+        `📸 Đã nhận ${state.photos}/${maxPhotos} ảnh. Vui lòng gửi tiếp.`
       );
     } else {
       await bot.sendMessage(
         chatId,
-        "🎉 Chúc mừng bạn đã hoàn thành nhiệm vụ nếu bạn vẫn muốn làm thêm gửi thêm ảnh để thêm thu nhập thì cứ tiếp tục tôi sẽ thanh toán đủ cho bạn."
+        "🎉 Chúc mừng bạn đã hoàn thành nhiệm vụ này. Nếu muốn làm thêm gửi thêm ảnh để thêm thu nhập thì cứ tiếp tục tôi sẽ thanh toán đủ cho bạn."
       );
     }
 

@@ -1,35 +1,35 @@
 const TelegramBot = require("node-telegram-bot-api");
 const express = require("express");
 
-/* ===== EXPRESS giữ bot sống ===== */
+// ===== EXPRESS giữ bot sống =====
 const app = express();
 app.get("/", (req, res) => res.send("Bot is running"));
 app.listen(process.env.PORT || 3000);
 
-/* ===== TELEGRAM ===== */
+// ===== TELEGRAM BOT =====
 const token = process.env.BOT_TOKEN;
 if (!token) {
-  console.error("BOT_TOKEN missing");
+  console.error("BOT_TOKEN is missing");
   process.exit(1);
 }
 
+// ⚠️ CHỈ polling 1 LẦN
 const bot = new TelegramBot(token, { polling: true });
 
-/* ===== ADMIN ID ===== */
-const ADMIN_ID = 123456789; // 👈 DÁN ID CỦA BẠN VÀO ĐÂY
+// ===== ADMIN ID =====
+const ADMIN_ID = 1913597752;
 
-/* ===== LƯU TRẠNG THÁI USER ===== */
-const userTask = {}; 
-// ví dụ: { chatId: "📌 Nhiệm vụ 1" }
+// ===== LƯU TRẠNG THÁI USER =====
+/*
+ userState = {
+   chatId: {
+     task: "📌 Nhiệm vụ 1" | "📌 Nhiệm vụ 2" | "📌 Nhiệm vụ 3"
+   }
+ }
+*/
+const userState = {};
 
-/* ===== /myid ===== */
-bot.onText(/\/myid/, (msg) => {
-  bot.sendMessage(msg.chat.id, `🆔 ID của bạn là: \`${msg.chat.id}\``, {
-    parse_mode: "Markdown"
-  });
-});
-
-/* ===== /start ===== */
+// ===== /start =====
 bot.onText(/\/start/, (msg) => {
   bot.sendMessage(
     msg.chat.id,
@@ -50,7 +50,7 @@ bot.onText(/\/start/, (msg) => {
   );
 });
 
-/* ===== NHIỆM VỤ (GIỮ NGUYÊN TEXT CỦA BẠN) ===== */
+// ===== NHIỆM VỤ (GIỮ NGUYÊN TEXT CỦA BẠN) =====
 const tasks = {
   "📌 Nhiệm vụ 1": `🔥 *NV1: Tham Gia Các Hội Nhóm*  
 💰 *CÔNG: 20K*
@@ -98,45 +98,70 @@ Phải hiện: _invited by user Thuỳ Linh_ mới được em nhé ✅`,
   }
 };
 
-/* ===== XỬ LÝ MESSAGE ===== */
+// ===== XỬ LÝ MESSAGE =====
 bot.on("message", async (msg) => {
   const chatId = msg.chat.id;
   const text = msg.text;
 
-  if (text === "/start" || text === "/myid") return;
+  if (text === "/start") return;
 
-  /* ===== CHỌN NHIỆM VỤ ===== */
+  // ===== CHỌN NHIỆM VỤ =====
   if (tasks[text]) {
-    userTask[chatId] = text;
+    userState[chatId] = { task: text };
 
     const task = tasks[text];
     if (typeof task === "string") {
-      return bot.sendMessage(chatId, task, { parse_mode: "Markdown" });
+      return bot.sendMessage(
+        chatId,
+        task + "\n\n📸 *Hoàn thành xong vui lòng GỬI ẢNH minh chứng*",
+        { parse_mode: "Markdown" }
+      );
     } else {
-      return bot.sendMessage(chatId, task.text, {
-        parse_mode: "Markdown",
-        reply_markup: {
-          inline_keyboard: [[{ text: "Bấm vào đây", url: task.url }]]
+      return bot.sendMessage(
+        chatId,
+        task.text + "\n\n📸 *Hoàn thành xong vui lòng GỬI ẢNH minh chứng*",
+        {
+          parse_mode: "Markdown",
+          reply_markup: {
+            inline_keyboard: [[{ text: "Bấm vào đây", url: task.url }]]
+          }
         }
-      });
+      );
     }
   }
 
-  /* ===== NHẬN ẢNH ===== */
+  // ===== NÚT ĐÃ XONG =====
+  if (text === "✅ Đã xong") {
+    return bot.sendMessage(
+      chatId,
+      "🎉 *Chúc mừng bạn đã hoàn thành đủ 3 Nhiệm Vụ*\n\n" +
+      "⬇️⬇️⬇️",
+      {
+        parse_mode: "Markdown",
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: "Ấn vào đây", url: "https://t.me/thuylinhnei" }]
+          ]
+        }
+      }
+    );
+  }
+
+  // ===== NHẬN ẢNH MINH CHỨNG =====
   if (msg.photo) {
-    if (!userTask[chatId]) {
+    const state = userState[chatId];
+    if (!state) {
       return bot.sendMessage(
         chatId,
-        "❌ Bạn chưa chọn nhiệm vụ. Vui lòng chọn nhiệm vụ trước."
+        "❌ Bạn chưa chọn nhiệm vụ.\n👉 Vui lòng chọn nhiệm vụ trước."
       );
     }
 
-    const taskName = userTask[chatId];
     const caption =
       `📥 *BÁO CÁO HOÀN THÀNH*\n\n` +
-      `👤 User: ${msg.from.first_name || "Không tên"}\n` +
+      `👤 User: ${msg.from.first_name || ""}\n` +
       `🆔 ID: ${chatId}\n` +
-      `📌 Nhiệm vụ: ${taskName}`;
+      `📌 Nhiệm vụ: ${state.task}`;
 
     await bot.sendPhoto(
       ADMIN_ID,
@@ -144,13 +169,20 @@ bot.on("message", async (msg) => {
       { caption, parse_mode: "Markdown" }
     );
 
-    return bot.sendMessage(chatId, "✅ Đã ghi nhận ảnh hoàn thành nhiệm vụ!");
+    delete userState[chatId];
+
+    return bot.sendMessage(
+      chatId,
+      "✅ *Đã ghi nhận ảnh hoàn thành.*\n👉 Tiếp tục làm nhiệm vụ tiếp theo.",
+      { parse_mode: "Markdown" }
+    );
   }
 
-  /* ===== CẤM TEXT ===== */
+  // ===== CẤM GỬI TEXT =====
   return bot.sendMessage(
     chatId,
-    "❌ Không thể gửi tin nhắn ở đây.\n👉 Vui lòng **CHỈ GỬI ẢNH** hoàn thành nhiệm vụ."
+    "❌ *Không thể gửi tin nhắn ở đây.*\n👉 Hãy gửi ẢNH hoàn thành nhiệm vụ hoặc nhắn cho @thuylinhnei",
+    { parse_mode: "Markdown" }
   );
 });
 

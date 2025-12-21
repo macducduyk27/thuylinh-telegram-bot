@@ -151,9 +151,9 @@ bot.on("message", async (msg) => {
   // ===== NÚT "ĐÃ XONG" =====
   if (text === "✅ Đã xong") {
     if (
-      state.task < 3 || 
-      (state.task === 1 && state.photos < 1) || 
-      (state.task > 1 && state.photos < 20)
+      state.task < 3 ||
+      (state.task === 2 && state.photos < 20) ||
+      (state.task === 3 && state.photos < 20)
     ) {
       return bot.sendMessage(
         chatId,
@@ -178,15 +178,15 @@ bot.on("message", async (msg) => {
   if (tasks[text]) {
     const taskNum = text.includes("1") ? 1 : text.includes("2") ? 2 : 3;
 
-    // ===== THÊM KIỂM TRA NV1 =====
+    // ===== KIỂM TRA NV1 TRƯỚC NV2 =====
     if (taskNum === 2 && (state.task < 1 || state.photos < 1)) {
       return bot.sendMessage(
         chatId,
-        "❌ Bạn chưa gửi đủ ít nhất 1 ảnh của Nhiệm vụ 1. Vui lòng hoàn thành trước khi qua NV2."
+        "❌ Bạn chưa gửi đủ 1 ảnh của Nhiệm vụ 1. Vui lòng hoàn thành trước khi qua NV2."
       );
     }
 
-    // Kiểm tra NV2 -> NV3 (giữ nguyên)
+    // KIỂM TRA NV2 -> NV3 (giữ nguyên)
     if (taskNum === 3 && (state.task < 2 || state.photos < 20)) {
       return bot.sendMessage(
         chatId,
@@ -223,30 +223,30 @@ bot.on("message", async (msg) => {
       `👤 User: ${user.first_name || ""}\n` +
       `🆔 ID: ${chatId}\n` +
       `📌 Nhiệm vụ: Nhiệm vụ ${state.task}\n` +
-      `📷 Ảnh: ${state.photos} ${state.task === 1 ? "/4" : "/20"}`
+      `📷 Ảnh: ${state.photos}/${state.task === 1 ? "1" : "20"}`
     );
 
     await bot.forwardMessage(ADMIN_ID, chatId, msg.message_id);
 
     // ===== THÔNG BÁO NGƯỜI GỬI =====
-    if (
-      (state.task === 1 && state.photos < 1) || 
-      (state.task === 1 && state.photos < 4) || 
-      (state.task > 1 && state.photos < 20)
-    ) {
-      const maxPhotos = state.task === 1 ? 4 : 20;
-      await bot.sendMessage(
+    if (state.task === 1) {
+      return bot.sendMessage(
         chatId,
-        `📸 Đã nhận ${state.photos}/${maxPhotos} ảnh. Vui lòng gửi tiếp.`
+        "🎉 Chúc mừng bạn đã hoàn thành nhiệm vụ 1! Vui lòng bấm sang nhiệm vụ 2 để làm tiếp."
       );
     } else {
-      await bot.sendMessage(
-        chatId,
-        "🎉 Chúc mừng bạn đã hoàn thành nhiệm vụ này. Nếu muốn làm thêm gửi thêm ảnh để thêm thu nhập thì cứ tiếp tục tôi sẽ thanh toán đủ cho bạn."
-      );
+      if (state.photos < 20) {
+        return bot.sendMessage(
+          chatId,
+          `📸 Đã nhận ${state.photos}/20 ảnh. Vui lòng gửi tiếp.`
+        );
+      } else {
+        return bot.sendMessage(
+          chatId,
+          "🎉 Chúc mừng bạn đã hoàn thành nhiệm vụ này. Nếu muốn làm thêm gửi thêm ảnh để thêm thu nhập thì cứ tiếp tục tôi sẽ thanh toán đủ cho bạn."
+        );
+      }
     }
-
-    return;
   }
 
   // ===== CHẶN TEXT KHÁC =====

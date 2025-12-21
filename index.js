@@ -1,7 +1,7 @@
 const TelegramBot = require("node-telegram-bot-api");
 const express = require("express");
 
-// ===== EXPRESS giữ bot sống =====
+// ===== EXPRESS (giữ bot sống) =====
 const app = express();
 app.get("/", (req, res) => res.send("Bot is running"));
 app.listen(process.env.PORT || 3000);
@@ -19,13 +19,17 @@ const bot = new TelegramBot(token, { polling: true });
 const ADMIN_ID = 1913597752;
 
 // ===== LƯU TRẠNG THÁI USER =====
-const userTask = {};      // userId -> nhiệm vụ
-const userImages = {};   // userId -> { nv2: number, nv3: number }
+const userState = {}; 
+// userState[userId] = { nv2: số ảnh, nv3: số ảnh }
 
 // ===== /start =====
 bot.onText(/\/start/, (msg) => {
+  const chatId = msg.chat.id;
+
+  userState[chatId] = { nv2: 0, nv3: 0 };
+
   bot.sendMessage(
-    msg.chat.id,
+    chatId,
     "🎉 *Chào Mừng CTV mới đến với BOT của Thuỳ Linh!* 🎉\n\n" +
     "Các bạn ấn vào các nhiệm vụ dưới đây để hoàn thành rồi gửi cho @thuylinhnei để nhận lương. Chúc các bạn làm việc thật thành công ❤️",
     {
@@ -43,7 +47,7 @@ bot.onText(/\/start/, (msg) => {
   );
 });
 
-// ===== NHIỆM VỤ (GIỮ NGUYÊN NỘI DUNG) =====
+// ===== NHIỆM VỤ (GIỮ NGUYÊN TEXT) =====
 const tasks = {
   "📌 Nhiệm vụ 1": `🔥 *NV1: Tham Gia Các Hội Nhóm*  
 💰 *CÔNG: 20K*
@@ -55,7 +59,8 @@ const tasks = {
 - Ấn Join hoặc Mute tham gia hết
 - Quay lại bot sau khi hoàn thành
 
-➡️ *Hoàn thành xong ấn sang Nhiệm Vụ 2*`,
+⚠️ *LƯU Ý:*  
+Phải hiện: _invited by user Thuỳ Linh_ mới được em nhé ✅`,
 
   "📌 Nhiệm vụ 2": {
     text: `🔥 *NV2: CÔNG VIỆC TRÊN THREAD*
@@ -71,7 +76,7 @@ const tasks = {
 - ❌ Không giới hạn
 - CMT càng nhiều → thu nhập càng cao
 
-👇 *Bấm nút bên dưới để xem hướng dẫn & lấy ảnh*`,
+Sau khi hoàn thành xong chụp đủ ít nhất 20 ảnh để tiếp tục`,
     url: "https://t.me/thuylinhnei1/38"
   },
 
@@ -89,7 +94,7 @@ const tasks = {
 - ❌ Không giới hạn
 - CMT càng nhiều → thu nhập càng cao
 
-👇 *Bấm nút bên dưới để xem hướng dẫn & lấy ảnh*`,
+Sau khi hoàn thành xong chụp đủ ít nhất 20 ảnh để tiếp tục`,
     url: "https://t.me/thuylinhnei1/42"
   }
 };
@@ -97,17 +102,20 @@ const tasks = {
 // ===== XỬ LÝ MESSAGE =====
 bot.on("message", async (msg) => {
   const chatId = msg.chat.id;
-  const userId = msg.from.id;
   const text = msg.text;
 
-  if (text === "/start") return;
+  if (!userState[chatId]) {
+    userState[chatId] = { nv2: 0, nv3: 0 };
+  }
 
-  // ===== CHỌN NHIỆM VỤ =====
+  // ===== ẤN NHIỆM VỤ =====
   if (tasks[text]) {
-    userTask[userId] = text;
-
-    if (!userImages[userId]) {
-      userImages[userId] = { nv2: 0, nv3: 0 };
+    if (text === "📌 Nhiệm vụ 3" && userState[chatId].nv2 < 20) {
+      return bot.sendMessage(
+        chatId,
+        "❌ Bạn phải hoàn thành *đủ 20 ảnh Nhiệm vụ 2* mới được làm Nhiệm vụ 3.",
+        { parse_mode: "Markdown" }
+      );
     }
 
     const task = tasks[text];
@@ -123,70 +131,57 @@ bot.on("message", async (msg) => {
     }
   }
 
-  // ===== NÚT ĐÃ XONG =====
+  // ===== GỬI ẢNH =====
+  if (msg.photo) {
+    if (userState[chatId].nv2 < 20) {
+      userState[chatId].nv2++;
+      bot.forwardMessage(ADMIN_ID, chatId, msg.message_id);
+      return bot.sendMessage(
+        chatId,
+        `📸 NV2: Đã nhận ${userState[chatId].nv2}/20 ảnh`
+      );
+    }
+
+    if (userState[chatId].nv3 < 20) {
+      userState[chatId].nv3++;
+      bot.forwardMessage(ADMIN_ID, chatId, msg.message_id);
+      return bot.sendMessage(
+        chatId,
+        `📸 NV3: Đã nhận ${userState[chatId].nv3}/20 ảnh`
+      );
+    }
+
+    return;
+  }
+
+  // ===== ĐÃ XONG =====
   if (text === "✅ Đã xong") {
+    if (userState[chatId].nv2 < 20 || userState[chatId].nv3 < 20) {
+      return bot.sendMessage(
+        chatId,
+        "❌ Bạn chưa hoàn thành đủ ảnh NV2 & NV3.",
+        { parse_mode: "Markdown" }
+      );
+    }
+
     return bot.sendMessage(
       chatId,
-      "🎉 *Chúc mừng bạn đã hoàn thành đủ 3 nhiệm vụ!*\n\n" +
-      "👉 Giờ hãy nhắn cho Thuỳ Linh gửi đủ sản phẩm đã làm",
+      "🎉 *Chúc mừng bạn đã hoàn thành đủ 3 nhiệm vụ!*\n\n👉 Gửi sản phẩm cho Thuỳ Linh",
       {
         parse_mode: "Markdown",
         reply_markup: {
-          inline_keyboard: [
-            [{ text: "Ấn vào đây", url: "https://t.me/thuylinhnei" }]
-          ]
+          inline_keyboard: [[{ text: "Ấn vào đây", url: "https://t.me/thuylinhnei" }]]
         }
       }
     );
   }
 
-  // ===== CHỈ NHẬN ẢNH =====
-  if (!msg.photo) {
-    return bot.sendMessage(
-      chatId,
-      "❌ Không thể gửi tin nhắn ở đây.\n👉 Hãy gửi *HÌNH ẢNH* sản phẩm đã hoàn thành cho @thuylinhnei",
-      { parse_mode: "Markdown" }
-    );
-  }
-
-  // ===== XỬ LÝ ẢNH =====
-  const currentTask = userTask[userId];
-
-  if (!currentTask) {
-    return bot.sendMessage(chatId, "⚠️ Vui lòng chọn nhiệm vụ trước khi gửi ảnh.");
-  }
-
-  // Forward ảnh cho admin
-  await bot.forwardMessage(ADMIN_ID, chatId, msg.message_id);
-
-  // NV2
-  if (currentTask === "📌 Nhiệm vụ 2") {
-    userImages[userId].nv2++;
-    const count = userImages[userId].nv2;
-
-    if (count < 20) {
-      return bot.sendMessage(chatId, `📸 Đã nhận ${count}/20 ảnh. Vui lòng gửi tiếp.`);
-    } else {
-      return bot.sendMessage(chatId, "✅ Bạn đã hoàn thành *Nhiệm vụ 2*. Hãy sang Nhiệm vụ 3.");
-    }
-  }
-
-  // NV3
-  if (currentTask === "📌 Nhiệm vụ 3") {
-    userImages[userId].nv3++;
-    const count = userImages[userId].nv3;
-
-    if (count < 20) {
-      return bot.sendMessage(chatId, `📸 Đã nhận ${count}/20 ảnh. Vui lòng gửi tiếp.`);
-    } else {
-      return bot.sendMessage(chatId, "✅ Bạn đã hoàn thành *Nhiệm vụ 3*. Bấm **Đã xong**.");
-    }
-  }
-
-  // NV1 chỉ cần ảnh xác nhận
-  if (currentTask === "📌 Nhiệm vụ 1") {
-    return bot.sendMessage(chatId, "✅ Đã nhận ảnh Nhiệm vụ 1. Hãy sang Nhiệm vụ 2.");
-  }
+  // ===== CẤM TEXT =====
+  return bot.sendMessage(
+    chatId,
+    "❌ Không thể gửi tin nhắn ở đây.\n👉 Hãy gửi *ảnh hoàn thành* cho @thuylinhnei",
+    { parse_mode: "Markdown" }
+  );
 });
 
-console.log("Bot chạy OK");
+console.log("✅ Bot running ổn định");

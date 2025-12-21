@@ -18,6 +18,30 @@ const bot = new TelegramBot(token, { polling: true });
 // ===== ADMIN =====
 const ADMIN_ID = 1913597752;
 
+// ===== DANH SÁCH NGƯỜI BỊ BAN =====
+const bannedUsers = new Set();
+
+// ===== LỆNH BAN / UNBAN =====
+bot.onText(/\/ban (\d+)/, (msg, match) => {
+  const chatId = msg.chat.id;
+  const userIdToBan = parseInt(match[1]);
+
+  if (chatId !== ADMIN_ID) return; // chỉ admin mới được ban
+
+  bannedUsers.add(userIdToBan);
+  bot.sendMessage(chatId, `✅ Đã cấm user ID: ${userIdToBan}`);
+});
+
+bot.onText(/\/unban (\d+)/, (msg, match) => {
+  const chatId = msg.chat.id;
+  const userIdToUnban = parseInt(match[1]);
+
+  if (chatId !== ADMIN_ID) return; // chỉ admin mới được unban
+
+  bannedUsers.delete(userIdToUnban);
+  bot.sendMessage(chatId, `✅ Đã bỏ cấm user ID: ${userIdToUnban}`);
+});
+
 // ===== LƯU TRẠNG THÁI USER =====
 const userState = {};
 // userState[userId] = { task: 0|1|2|3, photos: number }
@@ -25,6 +49,11 @@ const userState = {};
 // ===== /start =====
 bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
+
+  if (bannedUsers.has(chatId)) {
+    return bot.sendMessage(chatId, "❌ Bạn đã bị cấm sử dụng bot này.");
+  }
+
   userState[chatId] = { task: 0, photos: 0 };
 
   bot.sendMessage(
@@ -105,6 +134,11 @@ bot.on("message", async (msg) => {
   const chatId = msg.chat.id;
   const text = msg.text;
   const user = msg.from;
+
+  // ===== KIỂM TRA BAN =====
+  if (bannedUsers.has(chatId)) {
+    return bot.sendMessage(chatId, "❌ Bạn đã bị cấm sử dụng bot này.");
+  }
 
   if (!userState[chatId]) {
     userState[chatId] = { task: 0, photos: 0 };

@@ -165,7 +165,15 @@ bot.on("message", async (msg) => {
   if (tasks[text]) {
     const taskNum = text.includes("1") ? 1 : text.includes("2") ? 2 : 3;
 
-    // Kiểm tra điều kiện NV2 -> NV3
+    // ===== THÊM KIỂM TRA NV1 =====
+    if (taskNum === 2 && (state.task < 1 || state.photos < 1)) {
+      return bot.sendMessage(
+        chatId,
+        "❌ Bạn chưa gửi đủ ít nhất 1 ảnh của Nhiệm vụ 1. Vui lòng hoàn thành trước khi qua NV2."
+      );
+    }
+
+    // Kiểm tra NV2 -> NV3 (giữ nguyên)
     if (taskNum === 3 && (state.task < 2 || state.photos < 20)) {
       return bot.sendMessage(
         chatId,

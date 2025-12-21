@@ -173,13 +173,19 @@ bot.on("message", async (msg) => {
 
     await bot.forwardMessage(ADMIN_ID, chatId, msg.message_id);
 
-    // ===== THÔNG BÁO KHI ĐỦ 20 ẢNH =====
-    if (state.photos === 20) {
-      return bot.sendMessage(
+    // ===== THÔNG BÁO NGƯỜI GỬI =====
+    if (state.photos < 20) {
+      await bot.sendMessage(
+        chatId,
+        `📸 Đã nhận ${state.photos}/20 ảnh. Vui lòng gửi tiếp.`
+      );
+    } else {
+      await bot.sendMessage(
         chatId,
         "🎉 Chúc mừng bạn đã hoàn thành nhiệm vụ nếu bạn vẫn muốn làm thêm gửi thêm ảnh để thêm thu nhập thì cứ tiếp tục tôi sẽ thanh toán đủ cho bạn."
       );
     }
+
     return;
   }
 

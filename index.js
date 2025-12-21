@@ -106,7 +106,8 @@ Phải hiện: _invited by user Thuỳ Linh_ mới được em nhé ✅
 - ❌ KHÔNG GIỚI HẠN số lượng
 - CMT càng nhiều → thu nhập càng cao
 
-Sau khi hoàn thành xong chụp đủ ít nhất 20 ảnh để tiếp tục`,
+Sau khi hoàn thành xong chụp đủ ít nhất 20 ảnh để tiếp tục
+⬇️ Bấm nút bên dưới để xem hướng dẫn và lấy ảnh`,
     url: "https://t.me/thuylinhnei1/38"
   },
 
@@ -124,7 +125,8 @@ Sau khi hoàn thành xong chụp đủ ít nhất 20 ảnh để tiếp tục`,
 - ❌ KHÔNG GIỚI HẠN số lượng
 - CMT càng nhiều → thu nhập càng cao
 
-Sau khi hoàn thành xong chụp đủ ít nhất 20 ảnh để tiếp tục`,
+Sau khi hoàn thành xong chụp đủ ít nhất 20 ảnh để tiếp tục
+⬇️ Bấm nút bên dưới để xem hướng dẫn và lấy ảnh`,
     url: "https://t.me/thuylinhnei1/42"
   }
 };

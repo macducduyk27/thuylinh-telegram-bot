@@ -30,7 +30,7 @@ bot.onText(/\/start/, (msg) => {
   bot.sendMessage(
     chatId,
     "🎉 *Chào Mừng CTV mới đến với BOT của Thuỳ Linh!* 🎉\n\n" +
-    "Các bạn ấn vào các nhiệm vụ dưới đây để hoàn thành rồi gửi ảnh đã hoàn thành vào BOT luôn . Chúc các bạn làm việc thật thành công ❤️",
+    "Các bạn ấn vào các nhiệm vụ dưới đây để hoàn thành rồi gửi ảnh đã hoàn thành vào BOT luôn. Chúc các bạn làm việc thật thành công ❤️",
     {
       parse_mode: "Markdown",
       reply_markup: {
@@ -46,7 +46,7 @@ bot.onText(/\/start/, (msg) => {
   );
 });
 
-// ===== NHIỆM VỤ (GIỮ NGUYÊN) =====
+// ===== NHIỆM VỤ =====
 const tasks = {
   "📌 Nhiệm vụ 1": `🔥 *NV1: Tham Gia Các Hội Nhóm*  
 💰 *CÔNG: 20K*
@@ -110,8 +110,16 @@ bot.on("message", async (msg) => {
     userState[chatId] = { task: 0, photos: 0 };
   }
 
-  // ===== NÚT ĐÃ XONG =====
+  const state = userState[chatId];
+
+  // ===== NÚT "ĐÃ XONG" =====
   if (text === "✅ Đã xong") {
+    if (state.task < 3 || state.photos < 20) {
+      return bot.sendMessage(
+        chatId,
+        "❌ Bạn chưa hoàn thành đủ Nhiệm vụ 3 (20 ảnh). Vui lòng hoàn thành trước khi nhấn 'Đã xong'."
+      );
+    }
     return bot.sendMessage(
       chatId,
       "🎉 Chúc mừng bạn đã hoàn thành đủ 3 nhiệm vụ!\n" +
@@ -121,19 +129,19 @@ bot.on("message", async (msg) => {
 
   // ===== CHỌN NHIỆM VỤ =====
   if (tasks[text]) {
-    if (
-      text === "📌 Nhiệm vụ 3" &&
-      userState[chatId].task === 2 &&
-      userState[chatId].photos < 20
-    ) {
+    const taskNum = text.includes("1") ? 1 : text.includes("2") ? 2 : 3;
+
+    // Kiểm tra điều kiện NV2 -> NV3
+    if (taskNum === 3 && (state.task < 2 || state.photos < 20)) {
       return bot.sendMessage(
         chatId,
-        "❌ Bạn chưa hoàn thành đủ 20 ảnh của Nhiệm vụ 2."
+        "❌ Bạn chưa hoàn thành đủ 20 ảnh của Nhiệm vụ 2. Vui lòng hoàn thành trước khi qua NV3."
       );
     }
 
-    const taskNum = text.includes("1") ? 1 : text.includes("2") ? 2 : 3;
-    userState[chatId] = { task: taskNum, photos: 0 };
+    // Cập nhật state
+    state.task = taskNum;
+    state.photos = 0;
 
     const task = tasks[text];
     if (typeof task === "string") {
@@ -148,9 +156,8 @@ bot.on("message", async (msg) => {
     }
   }
 
-  // ===== GỬI ẢNH =====
+  // ===== NHẬN ẢNH =====
   if (msg.photo) {
-    const state = userState[chatId];
     if (!state.task) return;
 
     state.photos++;
@@ -166,17 +173,17 @@ bot.on("message", async (msg) => {
 
     await bot.forwardMessage(ADMIN_ID, chatId, msg.message_id);
 
+    // ===== THÔNG BÁO KHI ĐỦ 20 ẢNH =====
     if (state.photos === 20) {
       return bot.sendMessage(
         chatId,
         "🎉 Chúc mừng bạn đã hoàn thành nhiệm vụ nếu bạn vẫn muốn làm thêm gửi thêm ảnh để thêm thu nhập thì cứ tiếp tục tôi sẽ thanh toán đủ cho bạn."
       );
     }
-
     return;
   }
 
-  // ===== CẤM TEXT =====
+  // ===== CHẶN TEXT KHÁC =====
   return bot.sendMessage(
     chatId,
     "❌ Không thể gửi tin nhắn ở đây.\n👉 Hãy gửi ảnh hoàn thành nhiệm vụ ở đây. Có gì không hiểu vui lòng liên hệ @thuylinhnei để được giải đáp."

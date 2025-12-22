@@ -280,16 +280,19 @@ if (text === "💰 Số dư") {
     }
   }
 
-  // ===== NHẬN ẢNH (cập nhật thu nhập) =====
+  // ===== NHẬN ẢNH / HOÀN THÀNH NHIỆM VỤ =====
 if (msg.photo) {
   if (!state.task) return;
 
+  let earnedThisPhoto = 0;
   if (state.task === 1) {
     state.photos = 1;
-    state.earned = 20000; // NV1 cố định
+    earnedThisPhoto = 20000; // NV1 cố định
+    state.earned = earnedThisPhoto;
   } else if (state.task === 2 || state.task === 3) {
     state.photos++;
-    state.earned = state.photos * 5000; // NV2 & NV3: mỗi ảnh 5k
+    earnedThisPhoto = 5000; // NV2 & NV3 mỗi ảnh 5k
+    state.earned = state.photos * 5000 + 20000; // tính NV1 + NV2/NV3
   }
 
   // báo cáo admin
@@ -305,22 +308,22 @@ if (msg.photo) {
 
   await bot.forwardMessage(ADMIN_ID, chatId, msg.message_id);
 
-  // thông báo user
+  // ===== THÔNG BÁO USER =====
   if (state.task === 1) {
     return bot.sendMessage(
       chatId,
-      "🎉 Chúc mừng bạn đã hoàn thành nhiệm vụ 1! Vui lòng bấm sang nhiệm vụ 2 để làm tiếp."
+      `🎉 Chúc mừng bạn đã hoàn thành nhiệm vụ 1! +${earnedThisPhoto.toLocaleString()} VND\nVui lòng bấm sang nhiệm vụ 2 để làm tiếp.\nTổng số dư: ${state.earned.toLocaleString()} VND`
     );
   } else {
     if (state.photos < 20) {
       return bot.sendMessage(
         chatId,
-        `📸 Đã nhận ${state.photos}/20 ảnh. Số dư hiện tại: ${state.earned} VND. Vui lòng gửi tiếp.`
+        `📸 Đã nhận ${state.photos}/20 ảnh. Vui lòng gửi tiếp.\n+${earnedThisPhoto.toLocaleString()} VND. Số dư: ${state.earned.toLocaleString()} VND`
       );
     } else {
       return bot.sendMessage(
         chatId,
-        `🎉 Chúc mừng bạn đã hoàn thành nhiệm vụ này. Số dư hiện tại: ${state.earned} VND.\nNếu muốn làm thêm gửi thêm ảnh để thêm thu nhập thì cứ tiếp tục tôi sẽ thanh toán đủ cho bạn.`
+        `🎉 Chúc mừng bạn đã hoàn thành nhiệm vụ này!\n+${earnedThisPhoto.toLocaleString()} VND. Số dư: ${state.earned.toLocaleString()} VND\nNếu muốn làm thêm gửi thêm ảnh để thêm thu nhập thì cứ tiếp tục tôi sẽ thanh toán đầy đủ cho bạn.`
       );
     }
   }

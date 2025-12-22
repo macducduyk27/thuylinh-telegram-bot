@@ -112,7 +112,6 @@ bot.onText(/\/start/, (msg) => {
           [{ text: "📌 Nhiệm vụ 1" }],
           [{ text: "📌 Nhiệm vụ 2" }],
           [{ text: "📌 Nhiệm vụ 3" }],
-          [{ text: "✅ Đã xong" }],
           [{ text: "💰 Số dư" }, { text: "💸 Rút tiền" }]
         ],
         resize_keyboard: true
@@ -202,50 +201,25 @@ if (text === "💰 Số dư") {
   return bot.sendMessage(chatId, `💰 Số dư hiện tại của bạn: ${balance.toLocaleString()} VND`);
 }
 
-  // ===== RÚT TIỀN =====
-  if (
-  !state.photos1 || state.photos1 < 1 ||      // NV1: cần ít nhất 1 ảnh
-  !state.photos2 || state.photos2 < 20 ||     // NV2: cần 20 ảnh
-  !state.photos3 || state.photos3 < 20        // NV3: cần 20 ảnh
-) {
-  return bot.sendMessage(
-    chatId,
-    "❌ Bạn chưa hoàn thành đủ 3 nhiệm vụ. Vui lòng hoàn thành trước khi nhấn 'Đã xong'."
-  );
-}
+// ===== RÚT TIỀN =====
+bot.on("message", (msg) => {
+  const chatId = msg.chat.id;
+  const text = msg.text;
 
+  if (text === "💸 Rút tiền") {
     return bot.sendMessage(
       chatId,
       "❌ Bạn chưa xác nhận tài khoản. Vui lòng liên hệ @thuylinhnei để xác nhận tài khoản để được rút tiền."
     );
   }
+});
 
   // ===== KIỂM TRA BAN =====
   if (bannedUsers.has(chatId)) {
     return bot.sendMessage(chatId, "❌ Bạn đã bị cấm sử dụng bot này.");
   }
 
-  // ===== NÚT "ĐÃ XONG" =====
-if (text === "✅ Đã xong") {
-  // Kiểm tra NV1/NV2/NV3 đã hoàn thành
-  if (
-    !state.photos1 || state.photos1 < 1 ||   // NV1: cần ít nhất 1 ảnh
-    !state.photos2 || state.photos2 < 20 ||  // NV2: cần 20 ảnh
-    !state.photos3 || state.photos3 < 20     // NV3: cần 20 ảnh
-  ) {
-    return bot.sendMessage(
-      chatId,
-      "❌ Bạn chưa hoàn thành đủ 3 nhiệm vụ. Vui lòng hoàn thành trước khi nhấn 'Đã xong'."
-    );
-  }
-
-  // Thông báo hoàn thành, bỏ link và nút
-  return bot.sendMessage(
-    chatId,
-    `🎉 Chúc mừng bạn đã hoàn thành đủ 3 nhiệm vụ! Số dư hiện tại: ${state.earned.toLocaleString()} VND`
-  );
-}
-
+ 
  // ===== CHỌN NHIỆM VỤ =====
 if (tasks[text]) {
   const taskNum = text.includes("1") ? 1 : text.includes("2") ? 2 : 3;

@@ -202,15 +202,16 @@ if (text === "💰 Số dư") {
 }
 
   // ===== RÚT TIỀN =====
-  if (text === "💸 Rút tiền") {
-    if (state.task < 3 || 
-        (state.task === 2 && state.photos < 20) || 
-        (state.task === 3 && state.photos < 20)) {
-      return bot.sendMessage(
-        chatId,
-        "❌ Bạn cần phải hoàn thành xong 3 nhiệm vụ mới được rút tiền."
-      );
-    }
+  if (
+  !state.photos1 || state.photos1 < 1 ||      // NV1: cần ít nhất 1 ảnh
+  !state.photos2 || state.photos2 < 20 ||     // NV2: cần 20 ảnh
+  !state.photos3 || state.photos3 < 20        // NV3: cần 20 ảnh
+) {
+  return bot.sendMessage(
+    chatId,
+    "❌ Bạn chưa hoàn thành đủ 3 nhiệm vụ. Vui lòng hoàn thành trước khi nhấn 'Đã xong'."
+  );
+}
 
     return bot.sendMessage(
       chatId,

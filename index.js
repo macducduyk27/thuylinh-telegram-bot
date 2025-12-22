@@ -135,7 +135,8 @@ bot.onText(/\/start/, (msg) => {
   }
 
   userState[chatId] = { task: 0, photos: 0 };
-  iif (!userBalance[chatId]) userBalance[chatId] = 0;
+  if (!userBalance[chatId]) userBalance[chatId] = 0; // Sửa cú pháp ở đây
+
   bot.sendMessage(
     chatId,
     "🎉 *Chào Mừng CTV mới đến với BOT của Thuỳ Linh!* 🎉\n\n" +

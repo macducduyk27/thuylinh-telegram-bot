@@ -264,15 +264,15 @@ if (msg.photo) {
   let earnedThisPhoto = 0;
 
   if (state.task === 1) {
-    state.photos1 = 1;
-    earnedThisPhoto = 20000;
-  if (state.task === 2) {
-    state.photos2 = (state.photos2 || 0) + msg.photo.length;
-    earnedThisPhoto = 5000 * msg.photo.length;
-} else if (state.task === 3) {
-    state.photos3 = (state.photos3 || 0) + msg.photo.length;
-    earnedThisPhoto = 5000 * msg.photo.length;
-}
+      state.photos1 = 1;
+      earnedThisPhoto = 20000;
+  } else if (state.task === 2) {
+      state.photos2 = (state.photos2 || 0) + msg.photo.length;
+      earnedThisPhoto = 5000 * msg.photo.length;
+  } else if (state.task === 3) {
+      state.photos3 = (state.photos3 || 0) + msg.photo.length;
+      earnedThisPhoto = 5000 * msg.photo.length;
+  }
 
   // Tính tổng số dư
   state.earned = (state.photos1 ? 20000 : 0) +

@@ -178,11 +178,25 @@ bot.on("message", async (msg) => {
   let state = userState[chatId];
   if (!state) state = userState[chatId] = { task: 0, photos: 0, earned: 0 };
 
-  // ===== XEM SỐ DƯ =====
-  if (text === "💰 Số dư") {
-    const balance = state.earned || 0;
-    return bot.sendMessage(chatId, `💰 Số dư hiện tại của bạn: ${balance} VND`);
+// ===== XEM SỐ DƯ =====
+if (text === "💰 Số dư") {
+  let balance = 0;
+
+  if (state.task >= 1) balance += 20000; // NV1 cố định
+
+  if (state.task >= 2) {
+    balance += (state.photos >= 20 ? 20 : state.photos) * 5000; // NV2
   }
+
+  if (state.task >= 3) {
+    balance += (state.photos >= 20 ? 20 : state.photos) * 5000; // NV3
+  }
+
+  // Hoặc đơn giản dùng state.earned nếu bạn đã cập nhật khi gửi ảnh
+  balance = state.earned || balance;
+
+  return bot.sendMessage(chatId, `💰 Số dư hiện tại của bạn: ${balance} VND`);
+}
 
   // ===== RÚT TIỀN =====
   if (text === "💸 Rút tiền") {

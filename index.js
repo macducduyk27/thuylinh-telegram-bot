@@ -476,12 +476,12 @@ if (text === "ℹ️ Thông tin cá nhân") {
   }
 
   // ===== CHẶN TEXT KHÁC =====
-  if (!msg.photo && !tasks[text] && text !== "💰 Số dư" && text !== "💸 Rút tiền") {
-    return bot.sendMessage(
-      chatId,
-      "❌ Không thể gửi tin nhắn ở đây.\n👉 Hãy gửi ảnh hoàn thành nhiệm vụ ở đây. Có gì không hiểu vui lòng liên hệ @thuylinhnei để được giải đáp."
-    );
-  }
+if (!msg.photo && !tasks[text] && text !== "💰 Số dư" && text !== "💸 Rút tiền" && !state.withdrawStep) {
+  return bot.sendMessage(
+    chatId,
+    "❌ Không thể gửi tin nhắn ở đây.\n👉 Hãy gửi ảnh hoàn thành nhiệm vụ ở đây. Có gì không hiểu vui lòng liên hệ @thuylinhnei để được giải đáp."
+  );
+}
 });
 
 console.log("BOT RUNNING OK");

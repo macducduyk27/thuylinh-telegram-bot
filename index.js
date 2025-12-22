@@ -131,7 +131,99 @@ bot.onText(/\/start/, (msg) => {
   if (bannedUsers.has(chatId)) {
     return bot.sendMessage(chatId, "❌ Bạn đã bị cấm sử dụng bot này.");
   }
+  // Nếu user đang rút tiền
+  if (state.withdrawStep) {
 
+    // Bấm Cancel
+    if (text === "Cancel") {
+      state.withdrawStep = 0;
+      state.withdrawAmount = 0;
+      state.withdrawInfo = "";
+      return bot.sendMessage(chatId, "❌ Bạn đã hủy thao tác rút tiền.", {
+        reply_markup: {
+          keyboard: [
+            [{ text: "ℹ️ Thông tin cá nhân" }],
+            [{ text: "📌 Nhiệm vụ 1" }],
+            [{ text: "📌 Nhiệm vụ 2" }],
+            [{ text: "📌 Nhiệm vụ 3" }],
+            [{ text: "💰 Số dư" }, { text: "💸 Rút tiền" }]
+          ],
+          resize_keyboard: true
+        }
+      });
+    }
+
+    // Bước 1: nhập số tiền
+    if (state.withdrawStep === 1) {
+      const amount = parseInt(text.replace(/\D/g, ""));
+      if (isNaN(amount) || amount < 200000) {
+        return bot.sendMessage(chatId, "❌ Số tiền dưới 200,000 VND không thể rút.");
+      }
+      if (amount > state.earned) {
+        return bot.sendMessage(chatId, `❌ Bạn không đủ số dư. Số dư hiện tại: ${state.earned.toLocaleString()} VND`);
+      }
+
+      state.withdrawAmount = amount;
+      state.withdrawStep = 2;
+
+      return bot.sendMessage(chatId,
+        `Bạn muốn rút: ${amount.toLocaleString()} VND\n` +
+        `Hãy nhập thông tin ngân hàng hoặc ví nhận tiền.\n` +
+        `Ví dụ: Vietcombank 123456 N.V.A`
+      );
+    }
+
+    // Bước 2: nhập thông tin ngân hàng
+    if (state.withdrawStep === 2) {
+      state.withdrawInfo = text;
+      state.withdrawStep = 3;
+
+      return bot.sendMessage(chatId,
+        `Bạn có muốn rút số tiền ${state.withdrawAmount.toLocaleString()} VND không?\n` +
+        `Thông tin nhận tiền: ${state.withdrawInfo}`,
+        {
+          reply_markup: {
+            keyboard: [
+              [{ text: "Xác nhận" }, { text: "Huỷ Rút" }]
+            ],
+            resize_keyboard: true
+          }
+        }
+      );
+    }
+
+    // Bước 3: xác nhận hoặc hủy
+    if (state.withdrawStep === 3) {
+      if (text === "Huỷ Rút") {
+        state.withdrawStep = 0;
+        state.withdrawAmount = 0;
+        state.withdrawInfo = "";
+        return bot.sendMessage(chatId, "❌ Bạn đã hủy thao tác rút tiền.");
+      }
+      if (text === "Xác nhận") {
+        // trừ tiền
+        state.earned -= state.withdrawAmount;
+        const withdrawAmount = state.withdrawAmount;
+        const info = state.withdrawInfo;
+        state.withdrawStep = 0;
+        state.withdrawAmount = 0;
+        state.withdrawInfo = "";
+
+        // thông báo user
+        bot.sendMessage(chatId, `✅ Bạn đã xác nhận rút số tiền ${withdrawAmount.toLocaleString()} VND\nChờ admin xử lý.`);
+
+        // thông báo admin
+        bot.sendMessage(ADMIN_ID,
+          `💸 YÊU CẦU RÚT TIỀN\n\n` +
+          `👤 User: ${msg.from.first_name || ""}\n` +
+          `🆔 ID: ${chatId}\n` +
+          `Số tiền: ${withdrawAmount.toLocaleString()} VND\n` +
+          `Thông tin nhận tiền: ${info}`
+        );
+      }
+      return;
+    }
+  }
   // Chỉ khởi tạo user mới
   if (!userState[chatId]) {
     userState[chatId] = {
@@ -140,7 +232,10 @@ bot.onText(/\/start/, (msg) => {
       photos2: 0,
       photos3: 0,
       earned: 0,
-      verified: false // trạng thái xác nhận tài khoản
+      verified: false,
+      withdrawStep: 0,   // 0 = không rút, 1 = nhập số tiền, 2 = nhập thông tin ngân hàng, 3 = xác nhận
+      withdrawAmount: 0,
+      withdrawInfo: ""
     };
   }
 
@@ -261,7 +356,23 @@ if (text === "ℹ️ Thông tin cá nhân") {
   if (!state.verified) {
     return bot.sendMessage(chatId, "❌ Bạn chưa xác nhận tài khoản. Vui lòng liên hệ @thuylinhnei để xác nhận tài khoản.");
   }
-  // ở đây xử lý rút tiền khi verified = true
+
+  if (state.earned < 200000) {
+    return bot.sendMessage(chatId, "❌ Số dư dưới 200,000 VND không thể rút tiền.");
+  }
+
+  state.withdrawStep = 1; // bước nhập số tiền
+  return bot.sendMessage(chatId,
+    `✅  Rút tiền 24/24\n` +
+    `Số Tiền Rút Tối Thiểu Là: 200,000 VND\n\n` +
+    `Bạn nhập số tiền muốn rút ở dưới nha:`,
+    {
+      reply_markup: {
+        keyboard: [[{ text: "Cancel" }]],
+        resize_keyboard: true
+      }
+    }
+  );
 }
 
   // ===== CHỌN NHIỆM VỤ =====

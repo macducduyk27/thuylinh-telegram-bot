@@ -273,11 +273,11 @@ bot.onText(/\/start/, (msg) => {
       parse_mode: "Markdown",
       reply_markup: {
         keyboard: [
-          [{ text: "ℹ️ Thông tin cá nhân" }],
           [{ text: "📌 Nhiệm vụ 1" }],
           [{ text: "📌 Nhiệm vụ 2" }],
           [{ text: "📌 Nhiệm vụ 3" }],
-          [{ text: "💰 Số dư" }, { text: "💸 Rút tiền" }] // Đã bỏ "✅ Đã xong"
+          [{ text: "💰 Số dư" }, { text: "💸 Rút tiền" }],
+          [{ text: "ℹ️ Thông tin cá nhân" }]
         ],
         resize_keyboard: true
       }
@@ -293,9 +293,10 @@ const tasks = {
 🤖 BOT 1: [Nhấn vào đây](https://t.me/Kiemtien8989_bot?start=r03486044000)
 
 📌 *Cách làm:*
-- Nhấp vào tất cả kênh / nhóm
-- Ấn Join hoặc Mute tham gia hết
-- Quay lại bot sau khi hoàn thành
+- Nhấp vào tất cả kênh / nhóm.
+- Ấn Join hoặc Mute để tham gia hết.
+- Ấn nút CHECK để hiện: _You were invited by user Thuỳ Linh_.
+- Chụp màn hình và quay ra BOT Thuỳ Linh gửi ảnh
 
 ⚠️ *LƯU Ý:*  
 Phải hiện: _invited by user Thuỳ Linh_ mới được em nhé ✅

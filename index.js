@@ -250,38 +250,40 @@ if (text === "💰 Số dư") {
   }
 
  // ===== CHỌN NHIỆM VỤ =====
-  if (tasks[text]) {
-    const taskNum = text.includes("1") ? 1 : text.includes("2") ? 2 : 3;
+if (tasks[text]) {
+  const taskNum = text.includes("1") ? 1 : text.includes("2") ? 2 : 3;
 
-    if (taskNum === 2 && (state.task < 1 || state.photos < 1)) {
-      return bot.sendMessage(
-        chatId,
-        "❌ Bạn chưa gửi đủ 1 ảnh của Nhiệm vụ 1. Vui lòng hoàn thành trước khi qua NV2."
-      );
-    }
-
-    if (taskNum === 3 && (state.task < 2 || state.photos < 20)) {
-      return bot.sendMessage(
-        chatId,
-        "❌ Bạn chưa hoàn thành đủ 20 ảnh của Nhiệm vụ 2. Vui lòng hoàn thành trước khi qua NV3."
-      );
-    }
-
-    state.task = taskNum;
-    state.photos = 0;
-
-    const task = tasks[text];
-    if (typeof task === "string") {
-      return bot.sendMessage(chatId, task, { parse_mode: "Markdown" });
-    } else {
-      return bot.sendMessage(chatId, task.text, {
-        parse_mode: "Markdown",
-        reply_markup: {
-          inline_keyboard: [[{ text: "Bấm vào đây", url: task.url }]]
-        }
-      });
-    }
+  // Kiểm tra NV2: chỉ cần NV1 đã gửi 1 ảnh
+  if (taskNum === 2 && (!state.photos1 || state.photos1 < 1)) {
+    return bot.sendMessage(
+      chatId,
+      "❌ Bạn chưa gửi đủ 1 ảnh của Nhiệm vụ 1. Vui lòng hoàn thành trước khi qua NV2."
+    );
   }
+
+  // Kiểm tra NV3: NV2 cần 20 ảnh
+  if (taskNum === 3 && (!state.photos2 || state.photos2 < 20)) {
+    return bot.sendMessage(
+      chatId,
+      "❌ Bạn chưa hoàn thành đủ 20 ảnh của Nhiệm vụ 2. Vui lòng hoàn thành trước khi qua NV3."
+    );
+  }
+
+  // Cập nhật nhiệm vụ hiện tại
+  state.task = taskNum;
+
+  const task = tasks[text];
+  if (typeof task === "string") {
+    return bot.sendMessage(chatId, task, { parse_mode: "Markdown" });
+  } else {
+    return bot.sendMessage(chatId, task.text, {
+      parse_mode: "Markdown",
+      reply_markup: {
+        inline_keyboard: [[{ text: "Bấm vào đây", url: task.url }]]
+      }
+    });
+  }
+}
 
   // ===== NHẬN ẢNH (CẬP NHẬT THU NHẬP) =====
 if (msg.photo) {

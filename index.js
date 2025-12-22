@@ -367,122 +367,6 @@ bot.on("message", async (msg) => {
     return bot.sendMessage(chatId, "❌ Bạn đã bị cấm sử dụng bot này.");
   }
 
-  // ===== XỬ LÝ RÚT TIỀN =====
-  if (state.withdrawStep) {
-
-    // Bấm Cancel
-    if (text === "Cancel") {
-      state.withdrawStep = 0;
-      state.withdrawAmount = 0;
-      state.withdrawInfo = "";
-      return bot.sendMessage(chatId, "❌ Bạn đã hủy thao tác rút tiền.", {
-        reply_markup: {
-          keyboard: [
-            [{ text: "ℹ️ Thông tin cá nhân" }],
-            [{ text: "📌 Nhiệm vụ 1" }],
-            [{ text: "📌 Nhiệm vụ 2" }],
-            [{ text: "📌 Nhiệm vụ 3" }],
-            [{ text: "💰 Số dư" }, { text: "💸 Rút tiền" }]
-          ],
-          resize_keyboard: true
-        }
-      });
-    }
-
-    // Bước 1: nhập số tiền
-    if (state.withdrawStep === 1) {
-      const amount = parseInt(text.replace(/\D/g, ""));
-      if (isNaN(amount) || amount < 200000) {
-        return bot.sendMessage(chatId, "❌ Số tiền dưới 200,000 VND không thể rút.");
-      }
-      if (amount > state.earned) {
-        return bot.sendMessage(chatId, `❌ Bạn không đủ số dư. Số dư hiện tại: ${state.earned.toLocaleString()} VND`);
-      }
-
-      state.withdrawAmount = amount;
-      state.withdrawStep = 2;
-
-      return bot.sendMessage(chatId,
-        `Bạn muốn rút: ${amount.toLocaleString()} VND\n` +
-        `Hãy nhập thông tin ngân hàng hoặc ví nhận tiền.\n` +
-        `Ví dụ: Vietcombank 123456 N.V.A`
-      );
-    }
-
-    // Bước 2: nhập thông tin ngân hàng
-    if (state.withdrawStep === 2) {
-      state.withdrawInfo = text;
-      state.withdrawStep = 3;
-
-      return bot.sendMessage(chatId,
-        `Bạn có muốn rút số tiền ${state.withdrawAmount.toLocaleString()} VND không?\n` +
-        `Thông tin nhận tiền: ${state.withdrawInfo}`,
-        {
-          reply_markup: {
-            keyboard: [
-              [{ text: "Xác nhận" }, { text: "Huỷ Rút" }]
-            ],
-            resize_keyboard: true
-          }
-        }
-      );
-    }
-
-    // Bước 3: xác nhận hoặc hủy
-    if (state.withdrawStep === 3) {
-      if (text === "Huỷ Rút") {
-        state.withdrawStep = 0;
-        state.withdrawAmount = 0;
-        state.withdrawInfo = "";
-        return bot.sendMessage(chatId, "❌ Bạn đã hủy thao tác rút tiền.", {
-          reply_markup: {
-            keyboard: [
-              [{ text: "ℹ️ Thông tin cá nhân" }],
-              [{ text: "📌 Nhiệm vụ 1" }],
-              [{ text: "📌 Nhiệm vụ 2" }],
-              [{ text: "📌 Nhiệm vụ 3" }],
-              [{ text: "💰 Số dư" }, { text: "💸 Rút tiền" }]
-            ],
-            resize_keyboard: true
-          }
-        });
-      }
-      if (text === "Xác nhận") {
-        // trừ tiền
-        state.earned -= state.withdrawAmount;
-        const withdrawAmount = state.withdrawAmount;
-        const info = state.withdrawInfo;
-        state.withdrawStep = 0;
-        state.withdrawAmount = 0;
-        state.withdrawInfo = "";
-
-        // thông báo user
-        bot.sendMessage(chatId, `✅ Bạn đã xác nhận rút số tiền ${withdrawAmount.toLocaleString()} VND\nChờ admin xử lý.`, {
-          reply_markup: {
-            keyboard: [
-              [{ text: "ℹ️ Thông tin cá nhân" }],
-              [{ text: "📌 Nhiệm vụ 1" }],
-              [{ text: "📌 Nhiệm vụ 2" }],
-              [{ text: "📌 Nhiệm vụ 3" }],
-              [{ text: "💰 Số dư" }, { text: "💸 Rút tiền" }]
-            ],
-            resize_keyboard: true
-          }
-        });
-
-        // thông báo admin
-        bot.sendMessage(ADMIN_ID,
-          `💸 YÊU CẦU RÚT TIỀN\n\n` +
-          `👤 User: ${msg.from.first_name || ""}\n` +
-          `🆔 ID: ${chatId}\n` +
-          `Số tiền: ${withdrawAmount.toLocaleString()} VND\n` +
-          `Thông tin nhận tiền: ${info}`
-        );
-      }
-      return;
-    }
-  }
-
   // ===== XỬ LÝ /start =====
   if (text === "/start") {
     return bot.sendMessage(
@@ -507,58 +391,28 @@ bot.on("message", async (msg) => {
 
   // ===== XEM THÔNG TIN CÁ NHÂN =====
   if (text === "ℹ️ Thông tin cá nhân") {
-    const balance = (state.photos1 ? 20000 : 0) +
-                    (state.photos2 || 0) * 5000 +
-                    (state.photos3 || 0) * 5000;
-
     return bot.sendMessage(
       chatId,
       `👤 Tên: ${msg.from.first_name || ""}\n` +
       `🆔 ID: ${chatId}\n` +
-      `💰 Số dư: ${balance.toLocaleString()} VND`
+      `💰 Số dư: ${state.earned.toLocaleString()} VND`
     );
   }
 
   // ===== XEM SỐ DƯ =====
   if (text === "💰 Số dư") {
-    const balance = (state.photos1 ? 20000 : 0) +
-                    (state.photos2 || 0) * 5000 +
-                    (state.photos3 || 0) * 5000;
-    return bot.sendMessage(chatId, `💰 Số dư hiện tại của bạn: ${balance.toLocaleString()} VND`);
-  }
-
-  // ===== RÚT TIỀN BẮT ĐẦU =====
-  if (text === "💸 Rút tiền") {
-    if (!state.verified) {
-      return bot.sendMessage(chatId, "❌ Bạn chưa xác nhận tài khoản. Vui lòng liên hệ @thuylinhnei để xác nhận tài khoản.");
-    }
-
-    if (state.earned < 200000) {
-      return bot.sendMessage(chatId, "❌ Số dư dưới 200,000 VND không thể rút tiền.");
-    }
-
-    state.withdrawStep = 1;
-    return bot.sendMessage(chatId,
-      `✅  Rút tiền 24/24\n` +
-      `Số Tiền Rút Tối Thiểu Là: 200,000 VND\n\n` +
-      `Bạn nhập số tiền muốn rút ở dưới nha:`,
-      {
-        reply_markup: {
-          keyboard: [[{ text: "Cancel" }]],
-          resize_keyboard: true
-        }
-      }
-    );
+    return bot.sendMessage(chatId, `💰 Số dư hiện tại của bạn: ${state.earned.toLocaleString()} VND`);
   }
 
   // ===== CHỌN NHIỆM VỤ =====
   if (tasks[text]) {
     const taskNum = text.includes("1") ? 1 : text.includes("2") ? 2 : 3;
 
-    if (taskNum === 2 && (!state.photos1 || state.photos1 < 1)) {
+    // Kiểm tra thứ tự NV
+    if (taskNum === 2 && state.photos1 < 1) {
       return bot.sendMessage(chatId, "❌ Bạn chưa gửi đủ 1 ảnh của Nhiệm vụ 1. Vui lòng hoàn thành trước khi qua NV2.");
     }
-    if (taskNum === 3 && (!state.photos2 || state.photos2 < 20)) {
+    if (taskNum === 3 && state.photos2 < 20) {
       return bot.sendMessage(chatId, "❌ Bạn chưa hoàn thành đủ 20 ảnh của Nhiệm vụ 2. Vui lòng hoàn thành trước khi qua NV3.");
     }
 
@@ -578,50 +432,48 @@ bot.on("message", async (msg) => {
   }
 
   // ===== NHẬN ẢNH =====
-  if (msg.photo) {
-  if (!state.task) return;
+  if (msg.photo && state.task) {
+    let earnedThisPhoto = 0;
 
-  let earnedThisPhoto = 0;
-
-  if (state.task === 1) {
-    if (!state.photos1) {
-      state.photos1 = 1;
-      earnedThisPhoto = 20000;
+    if (state.task === 1) {
+      if (!state.photos1) {
+        state.photos1 = 1;
+        earnedThisPhoto = 20000;
+        state.earned += earnedThisPhoto;
+      }
+    } else if (state.task === 2) {
+      const photosSent = msg.photo.length;
+      state.photos2 = (state.photos2 || 0) + photosSent;
+      earnedThisPhoto = 5000 * photosSent;
+      state.earned += earnedThisPhoto;
+    } else if (state.task === 3) {
+      const photosSent = msg.photo.length;
+      state.photos3 = (state.photos3 || 0) + photosSent;
+      earnedThisPhoto = 5000 * photosSent;
       state.earned += earnedThisPhoto;
     }
-  } else if (state.task === 2) {
-    const photosSent = msg.photo.length;  // số ảnh gửi lần này
-    state.photos2 = (state.photos2 || 0) + photosSent;
-    earnedThisPhoto = 5000 * photosSent;  // cộng tiền = 5k * số ảnh
-    state.earned += earnedThisPhoto;
-  } else if (state.task === 3) {
-    const photosSent = msg.photo.length;
-    state.photos3 = (state.photos3 || 0) + photosSent;
-    earnedThisPhoto = 5000 * photosSent;
-    state.earned += earnedThisPhoto;
-  }
 
-  // báo admin
-  await bot.sendMessage(
-    ADMIN_ID,
-    `📥 BÁO CÁO HOÀN THÀNH\n👤 User: ${msg.from.first_name || ""}\n🆔 ID: ${chatId}\n📌 Nhiệm vụ: Nhiệm vụ ${state.task}\n📷 Ảnh NV1: ${state.photos1 || 0}/1\n📷 Ảnh NV2: ${state.photos2 || 0}/20\n📷 Ảnh NV3: ${state.photos3 || 0}/20\n💰 Thu nhập: ${state.earned.toLocaleString()} VND`
-  );
+    // báo admin
+    await bot.sendMessage(
+      ADMIN_ID,
+      `📥 BÁO CÁO HOÀN THÀNH\n👤 User: ${msg.from.first_name || ""}\n🆔 ID: ${chatId}\n📌 Nhiệm vụ: NV${state.task}\n📷 NV1: ${state.photos1 || 0}/1\n📷 NV2: ${state.photos2 || 0}/20\n📷 NV3: ${state.photos3 || 0}/20\n💰 Thu nhập: ${state.earned.toLocaleString()} VND`
+    );
 
-  await bot.forwardMessage(ADMIN_ID, chatId, msg.message_id);
+    await bot.forwardMessage(ADMIN_ID, chatId, msg.message_id);
 
-  // thông báo user
-  if (state.task === 1) {
-    return bot.sendMessage(chatId, `🎉 Chúc mừng bạn đã hoàn thành nhiệm vụ 1! +${earnedThisPhoto.toLocaleString()} VND\nVui lòng bấm sang nhiệm vụ 2 để làm tiếp.\nTổng số dư: ${state.earned.toLocaleString()} VND`);
-  } else {
-    const maxPhotos = 20;
-    const photos = state.task === 2 ? state.photos2 : state.photos3;
-    if (photos < maxPhotos) {
-      return bot.sendMessage(chatId, `📸 Đã nhận ${photos}/${maxPhotos} ảnh. Vui lòng gửi tiếp.\n+${earnedThisPhoto.toLocaleString()} VND. Số dư: ${state.earned.toLocaleString()} VND`);
+    // thông báo user
+    if (state.task === 1) {
+      return bot.sendMessage(chatId, `🎉 Chúc mừng bạn đã hoàn thành nhiệm vụ 1! +${earnedThisPhoto.toLocaleString()} VND\nVui lòng bấm sang nhiệm vụ 2 để làm tiếp.\nTổng số dư: ${state.earned.toLocaleString()} VND`);
     } else {
-      return bot.sendMessage(chatId, `🎉 Chúc mừng bạn đã hoàn thành nhiệm vụ này!\n+${earnedThisPhoto.toLocaleString()} VND. Số dư: ${state.earned.toLocaleString()} VND\nNếu muốn làm thêm gửi thêm ảnh để thêm thu nhập thì cứ tiếp tục tôi sẽ thanh toán đầy đủ cho bạn.`);
+      const maxPhotos = 20;
+      const photos = state.task === 2 ? state.photos2 : state.photos3;
+      if (photos < maxPhotos) {
+        return bot.sendMessage(chatId, `📸 Đã nhận ${photos}/${maxPhotos} ảnh. Vui lòng gửi tiếp.\n+${earnedThisPhoto.toLocaleString()} VND. Số dư: ${state.earned.toLocaleString()} VND`);
+      } else {
+        return bot.sendMessage(chatId, `🎉 Chúc mừng bạn đã hoàn thành nhiệm vụ này!\n+${earnedThisPhoto.toLocaleString()} VND. Số dư: ${state.earned.toLocaleString()} VND\nNếu muốn làm thêm gửi thêm ảnh để thêm thu nhập thì cứ tiếp tục tôi sẽ thanh toán đầy đủ cho bạn.`);
+      }
     }
   }
-}
 });
 
 console.log("BOT RUNNING OK");

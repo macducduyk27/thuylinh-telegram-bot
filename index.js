@@ -91,7 +91,14 @@ bot.onText(/\/start/, (msg) => {
     return bot.sendMessage(chatId, "❌ Bạn đã bị cấm sử dụng bot này.");
   }
 
-  userState[chatId] = { task: 0, photos: 0, earned: 0 };
+  // Thay đổi ở đây:
+  if (!userState[chatId]) userState[chatId] = {
+    task: 0,
+    photos1: 0,
+    photos2: 0,
+    photos3: 0,
+    earned: 0
+  };
 
   bot.sendMessage(
     chatId,

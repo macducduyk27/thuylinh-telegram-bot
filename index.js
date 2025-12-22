@@ -42,6 +42,58 @@ bot.onText(/\/unban (\d+)/, (msg, match) => {
   bot.sendMessage(chatId, `✅ Đã bỏ cấm user ID: ${userIdToUnban}`);
 });
 
+
+// ===== LỆNH ADM (THÔNG BÁO TOÀN BOT) =====
+bot.onText(/\/adm (.+)/, (msg, match) => {
+  const chatId = msg.chat.id;
+  const content = match[1];
+
+  if (chatId !== ADMIN_ID) return;
+
+  Object.keys(userState).forEach((uid) => {
+    if (!bannedUsers.has(Number(uid))) {
+      bot.sendMessage(uid, `📢 Thông báo:\n${content}`);
+    }
+  });
+
+  bot.sendMessage(chatId, "✅ Đã gửi thông báo đến toàn bộ CTV");
+});
+
+
+// ===== LỆNH RESET USER =====
+bot.onText(/\/reset (\d+)/, (msg, match) => {
+  const chatId = msg.chat.id;
+  const targetId = parseInt(match[1]);
+
+  if (chatId !== ADMIN_ID) return;
+
+  userState[targetId] = { task: 0, photos: 0 };
+
+  bot.sendMessage(chatId, `🔄 Đã reset nhiệm vụ cho user ID: ${targetId}`);
+
+  bot.sendMessage(
+    targetId,
+    "🔄 Nhiệm vụ của bạn đã bị reset. Vui lòng làm lại từ đầu cho đúng yêu cầu."
+  );
+});
+
+
+// ===== LỆNH WARN USER =====
+bot.onText(/\/warn (\d+)/, (msg, match) => {
+  const chatId = msg.chat.id;
+  const targetId = parseInt(match[1]);
+
+  if (chatId !== ADMIN_ID) return;
+
+  bot.sendMessage(
+    targetId,
+    "⚠️ CẢNH CÁO\n\nẢnh bạn gửi không hợp lệ hoặc làm cho có.\nNếu tiếp tục vi phạm sẽ bị BAN khỏi hệ thống."
+  );
+
+  bot.sendMessage(chatId, `⚠️ Đã cảnh cáo user ID: ${targetId}`);
+});
+
+
 // ===== LƯU TRẠNG THÁI USER =====
 const userState = {};
 // userState[userId] = { task: 0|1|2|3, photos: number }
@@ -178,7 +230,6 @@ bot.on("message", async (msg) => {
   if (tasks[text]) {
     const taskNum = text.includes("1") ? 1 : text.includes("2") ? 2 : 3;
 
-    // ===== KIỂM TRA NV1 TRƯỚC NV2 =====
     if (taskNum === 2 && (state.task < 1 || state.photos < 1)) {
       return bot.sendMessage(
         chatId,
@@ -186,7 +237,6 @@ bot.on("message", async (msg) => {
       );
     }
 
-    // KIỂM TRA NV2 -> NV3 (giữ nguyên)
     if (taskNum === 3 && (state.task < 2 || state.photos < 20)) {
       return bot.sendMessage(
         chatId,
@@ -194,7 +244,6 @@ bot.on("message", async (msg) => {
       );
     }
 
-    // Cập nhật state
     state.task = taskNum;
     state.photos = 0;
 
@@ -228,7 +277,6 @@ bot.on("message", async (msg) => {
 
     await bot.forwardMessage(ADMIN_ID, chatId, msg.message_id);
 
-    // ===== THÔNG BÁO NGƯỜI GỬI =====
     if (state.task === 1) {
       return bot.sendMessage(
         chatId,

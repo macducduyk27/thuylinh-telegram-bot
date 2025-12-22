@@ -127,37 +127,27 @@ bot.onText(/\/verify (\d+)/, (msg, match) => {
   
 // ===== LỆNH NẠP TIỀN =====
 bot.onText(/\/naptien (\d+) (\d+)/, (msg, match) => {
-  if (msg.from.id !== ADMIN_ID) return; // chỉ admin mới nạp
+  if (msg.from.id !== ADMIN_ID) return; // chỉ admin mới nạp được
 
   const userId = parseInt(match[1]);
   const amount = parseInt(match[2]);
 
-  // Khởi tạo user nếu chưa có
   if (!userState[userId]) {
-    userState[userId] = { 
-      task: 0, 
-      photos1: 0, 
-      photos2: 0, 
-      photos3: 0, 
-      earned: 0, 
-      verified: false, 
-      withdrawStep: 0,
-      withdrawAmount: 0,
-      withdrawInfo: ""
-    };
+    userState[userId] = { task: 0, photos1: 0, photos2: 0, photos3: 0, earned: 0 };
   }
 
-  // **Cộng tiền vào số dư thực sự**
+  // Cộng tiền vào số dư
   userState[userId].earned = (userState[userId].earned || 0) + amount;
 
-  // Thông báo cho user
-  bot.sendMessage(userId, 
-    `💰 Bạn vừa được admin nạp thêm ${amount.toLocaleString()} VND.\n` +
-    `💸 Số dư hiện tại: ${userState[userId].earned.toLocaleString()} VND`
+  // Thông báo cho user kèm số dư mới
+  bot.sendMessage(
+    userId,
+    `💰 Bạn vừa nạp thành công ${amount.toLocaleString()} VND vào tài khoản.\n` +
+    `💸 Tổng số dư hiện tại: ${userState[userId].earned.toLocaleString()} VND`
   );
 
   // Thông báo cho admin
-  bot.sendMessage(msg.chat.id, `✅ Đã nạp ${amount.toLocaleString()} VND cho user ID ${userId}`);
+  bot.sendMessage(msg.chat.id, `✅ Đã nạp ${amount.toLocaleString()} VND cho user ID: ${userId}`);
 });
 
 // ===== /start =====

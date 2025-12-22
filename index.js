@@ -168,11 +168,11 @@ bot.onText(/\/start/, (msg) => {
       return bot.sendMessage(chatId, "❌ Bạn đã hủy thao tác rút tiền.", {
         reply_markup: {
           keyboard: [
-            [{ text: "ℹ️ Thông tin cá nhân" }],
             [{ text: "📌 Nhiệm vụ 1" }],
             [{ text: "📌 Nhiệm vụ 2" }],
             [{ text: "📌 Nhiệm vụ 3" }],
-            [{ text: "💰 Số dư" }, { text: "💸 Rút tiền" }]
+            [{ text: "💰 Số dư" }, { text: "💸 Rút tiền" }],
+            [{ text: "ℹ️ Thông tin cá nhân" }]
           ],
           resize_keyboard: true
         }

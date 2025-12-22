@@ -189,6 +189,8 @@ bot.on("message", async (msg) => {
   const chatId = msg.chat.id;
   const text = msg.text;
   const user = msg.from;
+  if (!userState[chatId]) userState[chatId] = { task: 0, photos: 0, earned: 0 };
+const state = userState[chatId];
   // ===== XEM SỐ DƯ =====
 if (text === "💰 Số dư") {
   const balance = state.earned || 0;

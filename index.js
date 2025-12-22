@@ -99,7 +99,8 @@ bot.onText(/\/start/, (msg) => {
       photos2: 0,
       photos3: 0,
       earned: 0
-  };
+    };
+  }
 
   bot.sendMessage(
     chatId,
@@ -112,7 +113,7 @@ bot.onText(/\/start/, (msg) => {
           [{ text: "📌 Nhiệm vụ 1" }],
           [{ text: "📌 Nhiệm vụ 2" }],
           [{ text: "📌 Nhiệm vụ 3" }],
-          [{ text: "💰 Số dư" }, { text: "💸 Rút tiền" }]
+          [{ text: "💰 Số dư" }, { text: "💸 Rút tiền" }] // Đã bỏ "✅ Đã xong"
         ],
         resize_keyboard: true
       }

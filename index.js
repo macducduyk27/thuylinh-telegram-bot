@@ -151,6 +151,7 @@ bot.onText(/\/start/, (msg) => {
       parse_mode: "Markdown",
       reply_markup: {
         keyboard: [
+          [{ text: "ℹ️ Thông tin cá nhân" }],
           [{ text: "📌 Nhiệm vụ 1" }],
           [{ text: "📌 Nhiệm vụ 2" }],
           [{ text: "📌 Nhiệm vụ 3" }],
@@ -232,7 +233,20 @@ bot.on("message", async (msg) => {
   if (bannedUsers.has(chatId)) {
     return bot.sendMessage(chatId, "❌ Bạn đã bị cấm sử dụng bot này.");
   }
+  
+// ===== THÔNG TIN CÁ NHÂN =====
+if (text === "ℹ️ Thông tin cá nhân") {
+  const balance = (state.photos1 ? 20000 : 0) +
+                  (state.photos2 || 0) * 5000 +
+                  (state.photos3 || 0) * 5000;
 
+  return bot.sendMessage(
+    chatId,
+    `👤 Tên: ${msg.from.first_name || ""}\n` +
+    `🆔 ID: ${chatId}\n` +
+    `💰 Số dư: ${balance.toLocaleString()} VND`
+  );
+}
   // ===== XEM SỐ DƯ =====
   if (text === "💰 Số dư") {
     const balance = (state.photos1 ? 20000 : 0) +

@@ -83,6 +83,21 @@ bot.onText(/\/warn (\d+)/, (msg, match) => {
   bot.sendMessage(msg.chat.id, `⚠️ Đã cảnh cáo user ID: ${targetId}`);
 });
 
+// ===== LỆNH XÁC NHẬN TÀI KHOẢN (VERIFY) =====
+bot.onText(/\/verify (\d+)/, (msg, match) => {
+  if (msg.from.id !== ADMIN_ID) return;
+
+  const userId = parseInt(match[1]);
+
+  if (!userState[userId]) {
+    userState[userId] = { task: 0, photos1: 0, photos2: 0, photos3: 0, earned: 0, verified: true };
+  } else {
+    userState[userId].verified = true;
+  }
+
+  bot.sendMessage(msg.chat.id, `✅ User ID ${userId} đã được xác nhận tài khoản.`);
+  bot.sendMessage(userId, `🎉 Tài khoản của bạn đã được admin xác nhận. Bây giờ bạn có thể rút tiền.`);
+  
 // ===== LỆNH NẠP TIỀN =====
 bot.onText(/\/naptien (\d+) (\d+)/, (msg, match) => {
   if (msg.from.id !== ADMIN_ID) return; // chỉ admin mới nạp được
@@ -124,6 +139,7 @@ bot.onText(/\/start/, (msg) => {
       photos2: 0,
       photos3: 0,
       earned: 0
+      verified: false // trạng thái xác nhận tài khoản
     };
   }
 

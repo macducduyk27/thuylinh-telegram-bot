@@ -147,7 +147,7 @@ bot.onText(/\/start/, (msg) => {
           [{ text: "📌 Nhiệm vụ 1" }],
           [{ text: "📌 Nhiệm vụ 2" }],
           [{ text: "📌 Nhiệm vụ 3" }],
-          [{ text: "✅ Đã xong" }]
+          [{ text: "✅ Đã xong" }],
           [{ text: "💰 Xem số dư" }, { text: "💸 Rút tiền" }] // 2 nút cạnh nhau ở cuối
         ],
         resize_keyboard: true

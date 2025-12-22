@@ -475,6 +475,10 @@ if (text === "ℹ️ Thông tin cá nhân") {
     }
   }
 }
+// ===== CHẶN TEXT KHÁC =====
+if (!msg.photo && !tasks[text] && text !== "💰 Số dư" && text !== "💸 Rút tiền" && !state.withdrawStep) {
+  return bot.sendMessage(chatId, "❌ Không thể gửi tin nhắn ở đây...");
+}
 });
 
 console.log("BOT RUNNING OK");

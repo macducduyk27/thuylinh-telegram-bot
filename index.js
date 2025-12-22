@@ -18,45 +18,100 @@ const bot = new TelegramBot(token, { polling: true });
 // ===== ADMIN =====
 const ADMIN_ID = 1913597752;
 
-// ===== BAN =====
+// ===== DANH SÁCH NGƯỜI BỊ BAN =====
 const bannedUsers = new Set();
 
-// ===== USER STATE =====
-const userState = {};
-// userState[userId] = { task, photos, paidNV1 }
-
-// ===== USER BALANCE =====
-const userBalance = {};
-// userBalance[userId] = number
-
-// ===== /BAN /UNBAN =====
+// ===== LỆNH BAN / UNBAN =====
 bot.onText(/\/ban (\d+)/, (msg, match) => {
-  if (msg.chat.id !== ADMIN_ID) return;
-  bannedUsers.add(Number(match[1]));
-  bot.sendMessage(msg.chat.id, "✅ Đã ban user");
+  const chatId = msg.chat.id;
+  const userIdToBan = parseInt(match[1]);
+
+  if (chatId !== ADMIN_ID) return; // chỉ admin mới được ban
+
+  bannedUsers.add(userIdToBan);
+  bot.sendMessage(chatId, `✅ Đã cấm user ID: ${userIdToBan}`);
 });
 
 bot.onText(/\/unban (\d+)/, (msg, match) => {
-  if (msg.chat.id !== ADMIN_ID) return;
-  bannedUsers.delete(Number(match[1]));
-  bot.sendMessage(msg.chat.id, "✅ Đã unban user");
+  const chatId = msg.chat.id;
+  const userIdToUnban = parseInt(match[1]);
+
+  if (chatId !== ADMIN_ID) return; // chỉ admin mới được unban
+
+  bannedUsers.delete(userIdToUnban);
+  bot.sendMessage(chatId, `✅ Đã bỏ cấm user ID: ${userIdToUnban}`);
 });
 
-// ===== /START =====
+
+// ===== LỆNH ADM (THÔNG BÁO TOÀN BOT) =====
+bot.onText(/\/adm (.+)/, (msg, match) => {
+  const chatId = msg.chat.id;
+  const content = match[1];
+
+  if (chatId !== ADMIN_ID) return;
+
+  Object.keys(userState).forEach((uid) => {
+    if (!bannedUsers.has(Number(uid))) {
+      bot.sendMessage(uid, `📢 Thông báo:\n${content}`);
+    }
+  });
+
+  bot.sendMessage(chatId, "✅ Đã gửi thông báo đến toàn bộ CTV");
+});
+
+
+// ===== LỆNH RESET USER =====
+bot.onText(/\/reset (\d+)/, (msg, match) => {
+  const chatId = msg.chat.id;
+  const targetId = parseInt(match[1]);
+
+  if (chatId !== ADMIN_ID) return;
+
+  userState[targetId] = { task: 0, photos: 0 };
+
+  bot.sendMessage(chatId, `🔄 Đã reset nhiệm vụ cho user ID: ${targetId}`);
+
+  bot.sendMessage(
+    targetId,
+    "🔄 Nhiệm vụ của bạn đã bị reset. Vui lòng làm lại từ đầu cho đúng yêu cầu."
+  );
+});
+
+
+// ===== LỆNH WARN USER =====
+bot.onText(/\/warn (\d+)/, (msg, match) => {
+  const chatId = msg.chat.id;
+  const targetId = parseInt(match[1]);
+
+  if (chatId !== ADMIN_ID) return;
+
+  bot.sendMessage(
+    targetId,
+    "⚠️ CẢNH CÁO\n\nẢnh bạn gửi không hợp lệ hoặc làm cho có.\nNếu tiếp tục vi phạm sẽ bị BAN khỏi hệ thống."
+  );
+
+  bot.sendMessage(chatId, `⚠️ Đã cảnh cáo user ID: ${targetId}`);
+});
+
+
+// ===== LƯU TRẠNG THÁI USER =====
+const userState = {};
+// userState[userId] = { task: 0|1|2|3, photos: number }
+
+// ===== /start =====
 bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
 
   if (bannedUsers.has(chatId)) {
-    return bot.sendMessage(chatId, "❌ Bạn đã bị cấm sử dụng bot.");
+    return bot.sendMessage(chatId, "❌ Bạn đã bị cấm sử dụng bot này.");
   }
 
-  userState[chatId] = { task: 0, photos: 0, paidNV1: false };
-  userBalance[chatId] = userBalance[chatId] || 0;
+  userState[chatId] = { task: 0, photos: 0 };
 
   bot.sendMessage(
     chatId,
     "🎉 *Chào Mừng CTV mới đến với BOT của Thuỳ Linh!* 🎉\n\n" +
-      "Các bạn ấn vào các nhiệm vụ dưới đây để hoàn thành rồi gửi ảnh đã hoàn thành vào BOT luôn. Chúc các bạn làm việc thật thành công ❤️",
+    "Các bạn ấn vào các nhiệm vụ dưới đây để hoàn thành rồi gửi ảnh đã hoàn thành vào BOT luôn. Chúc các bạn làm việc thật thành công ❤️",
     {
       parse_mode: "Markdown",
       reply_markup: {
@@ -64,8 +119,7 @@ bot.onText(/\/start/, (msg) => {
           [{ text: "📌 Nhiệm vụ 1" }],
           [{ text: "📌 Nhiệm vụ 2" }],
           [{ text: "📌 Nhiệm vụ 3" }],
-          [{ text: "✅ Đã xong" }],
-          [{ text: "💰 Số dư" }, { text: "🏧 Rút tiền" }]
+          [{ text: "✅ Đã xong" }]
         ],
         resize_keyboard: true
       }
@@ -73,7 +127,7 @@ bot.onText(/\/start/, (msg) => {
   );
 });
 
-// ===== TASKS (GIỮ NGUYÊN 100%) =====
+// ===== NHIỆM VỤ =====
 const tasks = {
   "📌 Nhiệm vụ 1": `🔥 *NV1: Tham Gia Các Hội Nhóm*  
 💰 *CÔNG: 20K*
@@ -135,35 +189,62 @@ bot.on("message", async (msg) => {
   const text = msg.text;
   const user = msg.from;
 
-  if (bannedUsers.has(chatId)) return;
+  // ===== KIỂM TRA BAN =====
+  if (bannedUsers.has(chatId)) {
+    return bot.sendMessage(chatId, "❌ Bạn đã bị cấm sử dụng bot này.");
+  }
 
   if (!userState[chatId]) {
-    userState[chatId] = { task: 0, photos: 0, paidNV1: false };
-    userBalance[chatId] = userBalance[chatId] || 0;
+    userState[chatId] = { task: 0, photos: 0 };
   }
 
   const state = userState[chatId];
 
-  // ===== SỐ DƯ =====
-  if (text === "💰 Số dư") {
+  // ===== NÚT "ĐÃ XONG" =====
+  if (text === "✅ Đã xong") {
+    if (
+      state.task < 3 ||
+      (state.task === 2 && state.photos < 20) ||
+      (state.task === 3 && state.photos < 20)
+    ) {
+      return bot.sendMessage(
+        chatId,
+        "❌ Bạn chưa hoàn thành đủ 3 nhiệm vụ. Vui lòng hoàn thành trước khi nhấn 'Đã xong'."
+      );
+    }
     return bot.sendMessage(
       chatId,
-      `💰 Số dư hiện tại: ${userBalance[chatId].toLocaleString()}đ`
-    );
-  }
-
-  // ===== RÚT TIỀN =====
-  if (text === "🏧 Rút tiền") {
-    return bot.sendMessage(
-      chatId,
-      "🏧 *YÊU CẦU RÚT TIỀN*\n\n👉 Vui lòng nhắn trực tiếp cho Thuỳ Linh để được xử lý.",
-      { parse_mode: "Markdown" }
+      "🎉 Chúc mừng bạn đã hoàn thành đủ 3 nhiệm vụ!\n" +
+      "⬇️ Bấm nút bên dưới để xem hướng dẫn và lấy ảnh\n" +
+      "👉 Giờ hãy nhắn cho Thuỳ Linh để báo cáo đã hoàn thành xong công việc",
+      {
+        parse_mode: "Markdown",
+        reply_markup: {
+          inline_keyboard: [[{ text: "Ấn vào đây", url: "https://t.me/thuylinhnei" }]]
+        }
+      }
     );
   }
 
   // ===== CHỌN NHIỆM VỤ =====
   if (tasks[text]) {
-    state.task = text.includes("1") ? 1 : text.includes("2") ? 2 : 3;
+    const taskNum = text.includes("1") ? 1 : text.includes("2") ? 2 : 3;
+
+    if (taskNum === 2 && (state.task < 1 || state.photos < 1)) {
+      return bot.sendMessage(
+        chatId,
+        "❌ Bạn chưa gửi đủ 1 ảnh của Nhiệm vụ 1. Vui lòng hoàn thành trước khi qua NV2."
+      );
+    }
+
+    if (taskNum === 3 && (state.task < 2 || state.photos < 20)) {
+      return bot.sendMessage(
+        chatId,
+        "❌ Bạn chưa hoàn thành đủ 20 ảnh của Nhiệm vụ 2. Vui lòng hoàn thành trước khi qua NV3."
+      );
+    }
+
+    state.task = taskNum;
     state.photos = 0;
 
     const task = tasks[text];
@@ -181,37 +262,46 @@ bot.on("message", async (msg) => {
 
   // ===== NHẬN ẢNH =====
   if (msg.photo) {
+    if (!state.task) return;
+
     state.photos++;
-
-    let earn = 0;
-
-    // NV1 chỉ ăn 20K DUY NHẤT
-    if (state.task === 1 && !state.paidNV1) {
-      earn = 20000;
-      state.paidNV1 = true;
-    }
-
-    // NV2 & NV3
-    if (state.task === 2 || state.task === 3) {
-      earn = 5000;
-    }
-
-    userBalance[chatId] += earn;
 
     await bot.sendMessage(
       ADMIN_ID,
-      `📥 BÁO CÁO\n\n👤 ${user.first_name}\n🆔 ID: ${chatId}\n📌 NV: ${state.task}\n💰 +${earn.toLocaleString()}đ | Tổng: ${userBalance[chatId].toLocaleString()}đ`
+      `📥 BÁO CÁO HOÀN THÀNH\n\n` +
+      `👤 User: ${user.first_name || ""}\n` +
+      `🆔 ID: ${chatId}\n` +
+      `📌 Nhiệm vụ: Nhiệm vụ ${state.task}\n` +
+      `📷 Ảnh: ${state.photos}/${state.task === 1 ? "1" : "20"}`
     );
 
     await bot.forwardMessage(ADMIN_ID, chatId, msg.message_id);
 
-    return bot.sendMessage(
-      chatId,
-      `📸 Đã nhận ảnh\n💰 +${earn.toLocaleString()}đ | Số dư: ${userBalance[
-        chatId
-      ].toLocaleString()}đ`
-    );
+    if (state.task === 1) {
+      return bot.sendMessage(
+        chatId,
+        "🎉 Chúc mừng bạn đã hoàn thành nhiệm vụ 1! Vui lòng bấm sang nhiệm vụ 2 để làm tiếp."
+      );
+    } else {
+      if (state.photos < 20) {
+        return bot.sendMessage(
+          chatId,
+          `📸 Đã nhận ${state.photos}/20 ảnh. Vui lòng gửi tiếp.`
+        );
+      } else {
+        return bot.sendMessage(
+          chatId,
+          "🎉 Chúc mừng bạn đã hoàn thành nhiệm vụ này. Nếu muốn làm thêm gửi thêm ảnh để thêm thu nhập thì cứ tiếp tục tôi sẽ thanh toán đủ cho bạn."
+        );
+      }
+    }
   }
+
+  // ===== CHẶN TEXT KHÁC =====
+  return bot.sendMessage(
+    chatId,
+    "❌ Không thể gửi tin nhắn ở đây.\n👉 Hãy gửi ảnh hoàn thành nhiệm vụ ở đây. Có gì không hiểu vui lòng liên hệ @thuylinhnei để được giải đáp."
+  );
 });
 
 console.log("BOT RUNNING OK");

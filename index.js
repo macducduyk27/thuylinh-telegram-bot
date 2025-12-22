@@ -347,9 +347,8 @@ bot.on("message", async (msg) => {
   const text = msg.text;
 
   // Khởi tạo state nếu chưa có
-  let state = userState[chatId];
-  if (!state) {
-    state = userState[chatId] = {
+  if (!userState[chatId]) {
+    userState[chatId] = {
       task: 0,
       photos1: 0,
       photos2: 0,
@@ -361,13 +360,14 @@ bot.on("message", async (msg) => {
       withdrawInfo: ""
     };
   }
+  const state = userState[chatId];
 
-  // ===== KIỂM TRA BAN =====
+  // KIỂM TRA BAN
   if (bannedUsers.has(chatId)) {
     return bot.sendMessage(chatId, "❌ Bạn đã bị cấm sử dụng bot này.");
   }
 
-  // ===== XỬ LÝ /start =====
+  // XỬ LÝ /start
   if (text === "/start") {
     return bot.sendMessage(
       chatId,
@@ -389,89 +389,163 @@ bot.on("message", async (msg) => {
     );
   }
 
-  // ===== XEM THÔNG TIN CÁ NHÂN =====
+  // XEM THÔNG TIN CÁ NHÂN
   if (text === "ℹ️ Thông tin cá nhân") {
+    const balance = (state.photos1 ? 20000 : 0) +
+                    (state.photos2 || 0) * 5000 +
+                    (state.photos3 || 0) * 5000;
     return bot.sendMessage(
       chatId,
       `👤 Tên: ${msg.from.first_name || ""}\n` +
       `🆔 ID: ${chatId}\n` +
-      `💰 Số dư: ${state.earned.toLocaleString()} VND`
+      `💰 Số dư: ${balance.toLocaleString()} VND`
     );
   }
 
-  // ===== XEM SỐ DƯ =====
+  // XEM SỐ DƯ
   if (text === "💰 Số dư") {
-    return bot.sendMessage(chatId, `💰 Số dư hiện tại của bạn: ${state.earned.toLocaleString()} VND`);
+    const balance = (state.photos1 ? 20000 : 0) +
+                    (state.photos2 || 0) * 5000 +
+                    (state.photos3 || 0) * 5000;
+    return bot.sendMessage(chatId, `💰 Số dư hiện tại của bạn: ${balance.toLocaleString()} VND`);
   }
 
-  // ===== CHỌN NHIỆM VỤ =====
+  // RÚT TIỀN BẮT ĐẦU
+  if (text === "💸 Rút tiền") {
+    if (!state.verified) {
+      return bot.sendMessage(chatId, "❌ Bạn chưa xác nhận tài khoản. Vui lòng liên hệ @thuylinhnei để xác nhận.");
+    }
+    if ((state.photos1 ? 20000 : 0) + (state.photos2 || 0)*5000 + (state.photos3 || 0)*5000 < 200000) {
+      return bot.sendMessage(chatId, "❌ Số dư dưới 200,000 VND không thể rút tiền.");
+    }
+
+    state.withdrawStep = 1;
+    return bot.sendMessage(chatId,
+      `✅  Rút tiền 24/24\nSố Tiền Rút Tối Thiểu Là: 200,000 VND\n\n` +
+      `Bạn nhập số tiền muốn rút ở dưới nha:`,
+      { reply_markup: { keyboard: [[{ text: "Cancel" }]], resize_keyboard: true } }
+    );
+  }
+
+  // XỬ LÝ RÚT TIỀN
+  if (state.withdrawStep) {
+    if (text === "Cancel") {
+      state.withdrawStep = 0;
+      state.withdrawAmount = 0;
+      state.withdrawInfo = "";
+      return bot.sendMessage(chatId, "❌ Bạn đã hủy thao tác rút tiền.", {
+        reply_markup: { keyboard: [
+          [{ text: "ℹ️ Thông tin cá nhân" }],
+          [{ text: "📌 Nhiệm vụ 1" }],
+          [{ text: "📌 Nhiệm vụ 2" }],
+          [{ text: "📌 Nhiệm vụ 3" }],
+          [{ text: "💰 Số dư" }, { text: "💸 Rút tiền" }]
+        ], resize_keyboard: true }
+      });
+    }
+
+    if (state.withdrawStep === 1) {
+      const amount = parseInt(text.replace(/\D/g, ""));
+      if (isNaN(amount) || amount < 200000) return bot.sendMessage(chatId, "❌ Số tiền dưới 200,000 VND không thể rút.");
+      const balance = (state.photos1 ? 20000 : 0) + (state.photos2 || 0)*5000 + (state.photos3 || 0)*5000;
+      if (amount > balance) return bot.sendMessage(chatId, `❌ Bạn không đủ số dư. Số dư hiện tại: ${balance.toLocaleString()} VND`);
+      state.withdrawAmount = amount;
+      state.withdrawStep = 2;
+      return bot.sendMessage(chatId, `Bạn muốn rút: ${amount.toLocaleString()} VND\nHãy nhập thông tin ngân hàng hoặc ví nhận tiền.\nVí dụ: Vietcombank 123456 N.V.A`);
+    }
+
+    if (state.withdrawStep === 2) {
+      state.withdrawInfo = text;
+      state.withdrawStep = 3;
+      return bot.sendMessage(chatId,
+        `Bạn có muốn rút số tiền ${state.withdrawAmount.toLocaleString()} VND không?\nThông tin nhận tiền: ${state.withdrawInfo}`,
+        { reply_markup: { keyboard: [[{ text: "Xác nhận" }, { text: "Huỷ Rút" }]], resize_keyboard: true } }
+      );
+    }
+
+    if (state.withdrawStep === 3) {
+      if (text === "Huỷ Rút") {
+        state.withdrawStep = 0;
+        state.withdrawAmount = 0;
+        state.withdrawInfo = "";
+        return bot.sendMessage(chatId, "❌ Bạn đã hủy thao tác rút tiền.");
+      }
+      if (text === "Xác nhận") {
+        const withdrawAmount = state.withdrawAmount;
+        const info = state.withdrawInfo;
+        state.withdrawStep = 0;
+        state.withdrawAmount = 0;
+        state.withdrawInfo = "";
+        const balanceBefore = (state.photos1 ? 20000 : 0) + (state.photos2 || 0)*5000 + (state.photos3 || 0)*5000;
+        let remaining = balanceBefore - withdrawAmount;
+
+        // trừ tiền từ photos
+        let remainingAmount = remaining;
+        if (remainingAmount < (state.photos3 || 0)*5000) {
+          state.photos3 = Math.floor(remainingAmount / 5000);
+          remainingAmount -= state.photos3*5000;
+        }
+        if (remainingAmount < (state.photos2 || 0)*5000) {
+          state.photos2 = Math.floor(remainingAmount / 5000);
+          remainingAmount -= state.photos2*5000;
+        }
+        if (remainingAmount < 20000) {
+          state.photos1 = remainingAmount >= 20000 ? 1 : 0;
+        }
+
+        bot.sendMessage(chatId, `✅ Bạn đã xác nhận rút số tiền ${withdrawAmount.toLocaleString()} VND\nChờ admin xử lý.`);
+        bot.sendMessage(ADMIN_ID, `💸 YÊU CẦU RÚT TIỀN\n👤 User: ${msg.from.first_name || ""}\n🆔 ID: ${chatId}\nSố tiền: ${withdrawAmount.toLocaleString()} VND\nThông tin nhận tiền: ${info}`);
+      }
+      return;
+    }
+  }
+
+  // CHỌN NHIỆM VỤ
   if (tasks[text]) {
     const taskNum = text.includes("1") ? 1 : text.includes("2") ? 2 : 3;
-
-    // Kiểm tra thứ tự NV
-    if (taskNum === 2 && state.photos1 < 1) {
-      return bot.sendMessage(chatId, "❌ Bạn chưa gửi đủ 1 ảnh của Nhiệm vụ 1. Vui lòng hoàn thành trước khi qua NV2.");
-    }
-    if (taskNum === 3 && state.photos2 < 20) {
-      return bot.sendMessage(chatId, "❌ Bạn chưa hoàn thành đủ 20 ảnh của Nhiệm vụ 2. Vui lòng hoàn thành trước khi qua NV3.");
-    }
-
+    if (taskNum === 2 && state.photos1 < 1) return bot.sendMessage(chatId, "❌ Bạn chưa hoàn thành NV1.");
+    if (taskNum === 3 && state.photos2 < 20) return bot.sendMessage(chatId, "❌ Bạn chưa hoàn thành NV2.");
     state.task = taskNum;
 
     const task = tasks[text];
-    if (typeof task === "string") {
-      return bot.sendMessage(chatId, task, { parse_mode: "Markdown" });
-    } else {
-      return bot.sendMessage(chatId, task.text, {
-        parse_mode: "Markdown",
-        reply_markup: {
-          inline_keyboard: [[{ text: "Bấm vào đây", url: task.url }]]
-        }
-      });
-    }
+    if (typeof task === "string") return bot.sendMessage(chatId, task, { parse_mode: "Markdown" });
+    return bot.sendMessage(chatId, task.text, { parse_mode: "Markdown", reply_markup: { inline_keyboard: [[{ text: "Bấm vào đây", url: task.url }]] } });
   }
 
-  // ===== NHẬN ẢNH =====
-  if (msg.photo && state.task) {
-    let earnedThisPhoto = 0;
+  // NHẬN ẢNH
+  if (msg.photo) {
+    // Nếu chưa chọn nhiệm vụ, tự nhận nhiệm vụ đang làm dở
+    if (!state.task) {
+      if ((state.photos1 || 0) < 1) state.task = 1;
+      else if ((state.photos2 || 0) < 20) state.task = 2;
+      else state.task = 3;
+    }
 
-    if (state.task === 1) {
-      if (!state.photos1) {
-        state.photos1 = 1;
-        earnedThisPhoto = 20000;
-        state.earned += earnedThisPhoto;
-      }
+    let earnedThisPhoto = 0;
+    if (state.task === 1 && !state.photos1) {
+      state.photos1 = 1;
+      earnedThisPhoto = 20000;
     } else if (state.task === 2) {
       const photosSent = msg.photo.length;
       state.photos2 = (state.photos2 || 0) + photosSent;
       earnedThisPhoto = 5000 * photosSent;
-      state.earned += earnedThisPhoto;
     } else if (state.task === 3) {
       const photosSent = msg.photo.length;
       state.photos3 = (state.photos3 || 0) + photosSent;
       earnedThisPhoto = 5000 * photosSent;
-      state.earned += earnedThisPhoto;
     }
 
-    // báo admin
-    await bot.sendMessage(
-      ADMIN_ID,
-      `📥 BÁO CÁO HOÀN THÀNH\n👤 User: ${msg.from.first_name || ""}\n🆔 ID: ${chatId}\n📌 Nhiệm vụ: NV${state.task}\n📷 NV1: ${state.photos1 || 0}/1\n📷 NV2: ${state.photos2 || 0}/20\n📷 NV3: ${state.photos3 || 0}/20\n💰 Thu nhập: ${state.earned.toLocaleString()} VND`
-    );
-
+    // Thông báo admin
+    await bot.sendMessage(ADMIN_ID, `📥 BÁO CÁO\n👤 ${msg.from.first_name}\n🆔 ${chatId}\nNV${state.task}\nẢnh NV1:${state.photos1 || 0}/1\nNV2:${state.photos2 || 0}/20\nNV3:${state.photos3 || 0}/20\n💰 Thu nhập:${earnedThisPhoto.toLocaleString()} VND`);
     await bot.forwardMessage(ADMIN_ID, chatId, msg.message_id);
 
-    // thông báo user
-    if (state.task === 1) {
-      return bot.sendMessage(chatId, `🎉 Chúc mừng bạn đã hoàn thành nhiệm vụ 1! +${earnedThisPhoto.toLocaleString()} VND\nVui lòng bấm sang nhiệm vụ 2 để làm tiếp.\nTổng số dư: ${state.earned.toLocaleString()} VND`);
+    // Thông báo user
+    const photos = state.task === 2 ? state.photos2 : state.photos3;
+    const maxPhotos = state.task === 2 || state.task === 3 ? 20 : 1;
+    if (photos < maxPhotos) {
+      return bot.sendMessage(chatId, `📸 Đã nhận ${photos}/${maxPhotos} ảnh.\n+${earnedThisPhoto.toLocaleString()} VND. Số dư: ${(state.photos1?20000:0)+(state.photos2||0)*5000+(state.photos3||0)*5000} VND`);
     } else {
-      const maxPhotos = 20;
-      const photos = state.task === 2 ? state.photos2 : state.photos3;
-      if (photos < maxPhotos) {
-        return bot.sendMessage(chatId, `📸 Đã nhận ${photos}/${maxPhotos} ảnh. Vui lòng gửi tiếp.\n+${earnedThisPhoto.toLocaleString()} VND. Số dư: ${state.earned.toLocaleString()} VND`);
-      } else {
-        return bot.sendMessage(chatId, `🎉 Chúc mừng bạn đã hoàn thành nhiệm vụ này!\n+${earnedThisPhoto.toLocaleString()} VND. Số dư: ${state.earned.toLocaleString()} VND\nNếu muốn làm thêm gửi thêm ảnh để thêm thu nhập thì cứ tiếp tục tôi sẽ thanh toán đầy đủ cho bạn.`);
-      }
+      return bot.sendMessage(chatId, `🎉 Hoàn thành NV${state.task}!\n+${earnedThisPhoto.toLocaleString()} VND. Số dư: ${(state.photos1?20000:0)+(state.photos2||0)*5000+(state.photos3||0)*5000} VND\nBạn có thể gửi thêm để tăng thu nhập.`);
     }
   }
 });

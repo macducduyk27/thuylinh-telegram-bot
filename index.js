@@ -97,6 +97,34 @@ bot.onText(/\/warn (\d+)/, (msg, match) => {
 // ===== LƯU TRẠNG THÁI USER =====
 const userState = {};
 // userState[userId] = { task: 0|1|2|3, photos: number }
+// ===== VÍ TIỀN USER =====
+const userBalance = {};
+// userBalance[userId] = number
+
+// ===== XEM SỐ DƯ =====
+bot.onText(/\/sodu/, (msg) => {
+  const chatId = msg.chat.id;
+  const balance = userBalance[chatId] || 0;
+
+  bot.sendMessage(
+    chatId,
+    `💰 SỐ DƯ HIỆN TẠI\n\n💵 ${balance.toLocaleString()} VNĐ`
+  );
+});
+// ===== RÚT TIỀN =====
+bot.onText(/\/rut/, (msg) => {
+  const chatId = msg.chat.id;
+  const balance = userBalance[chatId] || 0;
+
+  if (balance <= 0) {
+    return bot.sendMessage(chatId, "❌ Số dư của bạn không đủ để rút.");
+  }
+
+  bot.sendMessage(
+    chatId,
+    "❌ Bạn chưa xác nhận phí xác nhận tài khoản. Vui lòng nhắn cho @thuylinhnei để xác nhận tài khoản, sau đó mới có thể rút tiền."
+  );
+});
 
 // ===== /start =====
 bot.onText(/\/start/, (msg) => {
@@ -107,7 +135,7 @@ bot.onText(/\/start/, (msg) => {
   }
 
   userState[chatId] = { task: 0, photos: 0 };
-
+  iif (!userBalance[chatId]) userBalance[chatId] = 0;
   bot.sendMessage(
     chatId,
     "🎉 *Chào Mừng CTV mới đến với BOT của Thuỳ Linh!* 🎉\n\n" +
@@ -265,6 +293,14 @@ bot.on("message", async (msg) => {
     if (!state.task) return;
 
     state.photos++;
+    // ===== TÍNH TIỀN =====
+if (state.task === 1 && state.photos === 1) {
+  userBalance[chatId] += 20000;
+}
+
+if ((state.task === 2 || state.task === 3) && state.photos <= 20) {
+  userBalance[chatId] += 5000;
+}
 
     await bot.sendMessage(
       ADMIN_ID,

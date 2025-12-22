@@ -287,20 +287,27 @@ if (text === "💰 Số dư") {
     }
   }
 
-  // ===== NHẬN ẢNH / HOÀN THÀNH NHIỆM VỤ =====
+  // ===== NHẬN ẢNH (CẬP NHẬT THU NHẬP) =====
 if (msg.photo) {
   if (!state.task) return;
 
   let earnedThisPhoto = 0;
+
   if (state.task === 1) {
-    state.photos = 1;
-    earnedThisPhoto = 20000; // NV1 cố định
-    state.earned = earnedThisPhoto;
-  } else if (state.task === 2 || state.task === 3) {
-    state.photos++;
-    earnedThisPhoto = 5000; // NV2 & NV3 mỗi ảnh 5k
-    state.earned = state.photos * 5000 + 20000; // tính NV1 + NV2/NV3
+    state.photos1 = 1;
+    earnedThisPhoto = 20000;
+  } else if (state.task === 2) {
+    state.photos2 = (state.photos2 || 0) + 1;
+    earnedThisPhoto = 5000;
+  } else if (state.task === 3) {
+    state.photos3 = (state.photos3 || 0) + 1;
+    earnedThisPhoto = 5000;
   }
+
+  // Tính tổng số dư
+  state.earned = (state.photos1 ? 20000 : 0) +
+                 (state.photos2 || 0) * 5000 +
+                 (state.photos3 || 0) * 5000;
 
   // báo cáo admin
   await bot.sendMessage(
@@ -309,23 +316,28 @@ if (msg.photo) {
       `👤 User: ${msg.from.first_name || ""}\n` +
       `🆔 ID: ${chatId}\n` +
       `📌 Nhiệm vụ: Nhiệm vụ ${state.task}\n` +
-      `📷 Ảnh: ${state.photos}/${state.task === 1 ? "1" : "20"}\n` +
-      `💰 Thu nhập hiện tại: ${state.earned} VND`
+      `📷 Ảnh NV1: ${state.photos1 || 0}/1\n` +
+      `📷 Ảnh NV2: ${state.photos2 || 0}/20\n` +
+      `📷 Ảnh NV3: ${state.photos3 || 0}/20\n` +
+      `💰 Thu nhập hiện tại: ${state.earned.toLocaleString()} VND`
   );
 
   await bot.forwardMessage(ADMIN_ID, chatId, msg.message_id);
 
-  // ===== THÔNG BÁO USER =====
+  // thông báo user
   if (state.task === 1) {
     return bot.sendMessage(
       chatId,
       `🎉 Chúc mừng bạn đã hoàn thành nhiệm vụ 1! +${earnedThisPhoto.toLocaleString()} VND\nVui lòng bấm sang nhiệm vụ 2 để làm tiếp.\nTổng số dư: ${state.earned.toLocaleString()} VND`
     );
-  } else {
-    if (state.photos < 20) {
+  } else if (state.task === 2 || state.task === 3) {
+    const maxPhotos = 20;
+    const photos = state.task === 2 ? state.photos2 : state.photos3;
+
+    if (photos < maxPhotos) {
       return bot.sendMessage(
         chatId,
-        `📸 Đã nhận ${state.photos}/20 ảnh. Vui lòng gửi tiếp.\n+${earnedThisPhoto.toLocaleString()} VND. Số dư: ${state.earned.toLocaleString()} VND`
+        `📸 Đã nhận ${photos}/${maxPhotos} ảnh. Vui lòng gửi tiếp.\n+${earnedThisPhoto.toLocaleString()} VND. Số dư: ${state.earned.toLocaleString()} VND`
       );
     } else {
       return bot.sendMessage(

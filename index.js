@@ -315,7 +315,7 @@ Phải hiện: _invited by user Thuỳ Linh_ mới được em nhé ✅
 - Đủ 20 CMT là được rút lương
 - ❌ KHÔNG GIỚI HẠN số lượng
 - CMT càng nhiều → thu nhập càng cao
-
+NẾU BẠN KHÔNG MUỐN CMT BÊN THEARD THÌ NHẮN CHO @thuylinhnei ĐỂ MÌNH GỬI HƯỚNG DẪN CMT BÊN TIKTOK.
 Sau khi hoàn thành xong chụp đủ ít nhất 20 ảnh để tiếp tục
 ⬇️ Bấm nút bên dưới để xem hướng dẫn và lấy ảnh`,
     url: "https://t.me/thuylinhnei1/38"
@@ -463,8 +463,11 @@ bot.on("message", async (msg) => {
   if (text === "/start") {
     return bot.sendMessage(
       chatId,
-      "🎉 *Chào Mừng CTV mới đến với BOT của Thuỳ Linh!* 🎉\n\n" +
-        "Các bạn ấn vào các nhiệm vụ dưới đây để hoàn thành rồi gửi ảnh đã hoàn thành vào BOT luôn. Chúc các bạn làm việc thật thành công ❤️",
+      "🎉 Chào mừng bạn đến với BOT CTV Thuỳ Linh! 🎉\n\n" +
+    "🌟 Bạn vừa bước vào cộng đồng kiếm tiền online uy tín và tiện lợi.\n" +
+    "💪 Hoàn thành nhiệm vụ, gửi ảnh xác nhận – nhận thu nhập ngay trong BOT!\n" +
+    "❤️ Chúc bạn làm việc thật hiệu quả và vui vẻ!\n\n" +
+    "Nhấn vào các nhiệm vụ bên dưới để bắt đầu thôi nào! 🚀",
       {
         parse_mode: "Markdown",
         reply_markup: {

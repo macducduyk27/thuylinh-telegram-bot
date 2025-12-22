@@ -208,10 +208,16 @@ bot.on("message", async (msg) => {
   const text = msg.text;
   const user = msg.from;
 
+  // Khởi tạo userState nếu chưa có
   let state = userState[chatId];
-  if (!state) state = userState[chatId] = { task: 0, photos: 0, earned: 0 };
+  if (!state) state = userState[chatId] = { task: 0, photos1:0, photos2:0, photos3:0, earned:0 };
 
-// ===== XEM SỐ DƯ =====
+  // ===== KIỂM TRA BAN =====
+  if (bannedUsers.has(chatId)) {
+    return bot.sendMessage(chatId, "❌ Bạn đã bị cấm sử dụng bot này.");
+  }
+
+  // ===== XEM SỐ DƯ =====
   if (text === "💰 Số dư") {
     const balance = (state.photos1 ? 20000 : 0) +
                     (state.photos2 || 0) * 5000 +
@@ -226,115 +232,114 @@ bot.on("message", async (msg) => {
       "❌ Bạn chưa xác nhận tài khoản. Vui lòng liên hệ @thuylinhnei để xác nhận tài khoản để được rút tiền."
     );
   }
-});
 
-  // ===== KIỂM TRA BAN =====
-  if (bannedUsers.has(chatId)) {
-    return bot.sendMessage(chatId, "❌ Bạn đã bị cấm sử dụng bot này.");
+  // ===== CHỌN NHIỆM VỤ =====
+  if (tasks[text]) {
+    const taskNum = text.includes("1") ? 1 : text.includes("2") ? 2 : 3;
+
+    // Kiểm tra NV2: chỉ cần NV1 đã gửi 1 ảnh
+    if (taskNum === 2 && (!state.photos1 || state.photos1 < 1)) {
+      return bot.sendMessage(
+        chatId,
+        "❌ Bạn chưa gửi đủ 1 ảnh của Nhiệm vụ 1. Vui lòng hoàn thành trước khi qua NV2."
+      );
+    }
+
+    // Kiểm tra NV3: NV2 cần 20 ảnh
+    if (taskNum === 3 && (!state.photos2 || state.photos2 < 20)) {
+      return bot.sendMessage(
+        chatId,
+        "❌ Bạn chưa hoàn thành đủ 20 ảnh của Nhiệm vụ 2. Vui lòng hoàn thành trước khi qua NV3."
+      );
+    }
+
+    // Cập nhật nhiệm vụ hiện tại
+    state.task = taskNum;
+
+    const task = tasks[text];
+    if (typeof task === "string") {
+      return bot.sendMessage(chatId, task, { parse_mode: "Markdown" });
+    } else {
+      return bot.sendMessage(chatId, task.text, {
+        parse_mode: "Markdown",
+        reply_markup: {
+          inline_keyboard: [[{ text: "Bấm vào đây", url: task.url }]]
+        }
+      });
+    }
   }
-
- 
- // ===== CHỌN NHIỆM VỤ =====
-if (tasks[text]) {
-  const taskNum = text.includes("1") ? 1 : text.includes("2") ? 2 : 3;
-
-  // Kiểm tra NV2: chỉ cần NV1 đã gửi 1 ảnh
-  if (taskNum === 2 && (!state.photos1 || state.photos1 < 1)) {
-    return bot.sendMessage(
-      chatId,
-      "❌ Bạn chưa gửi đủ 1 ảnh của Nhiệm vụ 1. Vui lòng hoàn thành trước khi qua NV2."
-    );
-  }
-
-  // Kiểm tra NV3: NV2 cần 20 ảnh
-  if (taskNum === 3 && (!state.photos2 || state.photos2 < 20)) {
-    return bot.sendMessage(
-      chatId,
-      "❌ Bạn chưa hoàn thành đủ 20 ảnh của Nhiệm vụ 2. Vui lòng hoàn thành trước khi qua NV3."
-    );
-  }
-
-  // Cập nhật nhiệm vụ hiện tại
-  state.task = taskNum;
-
-  const task = tasks[text];
-  if (typeof task === "string") {
-    return bot.sendMessage(chatId, task, { parse_mode: "Markdown" });
-  } else {
-    return bot.sendMessage(chatId, task.text, {
-      parse_mode: "Markdown",
-      reply_markup: {
-        inline_keyboard: [[{ text: "Bấm vào đây", url: task.url }]]
-      }
-    });
-  }
-}
 
   // ===== NHẬN ẢNH (CẬP NHẬT THU NHẬP) =====
-if (state.task === 1) {
-    if (!state.photos1) {       // chỉ nhận 1 lần
+  let earnedThisPhoto = 0;
+  if (msg.photo) {
+    if (!state.task) return;
+
+    if (state.task === 1) {
+      if (!state.photos1) {       // chỉ nhận 1 lần
         state.photos1 = 1;
         earnedThisPhoto = 20000;
-    } else {
+      } else {
         earnedThisPhoto = 0;
+      }
+    } else if (state.task === 2) {
+      state.photos2 = (state.photos2 || 0) + 1; // +1 ảnh thôi
+      earnedThisPhoto = 5000;
+    } else if (state.task === 3) {
+      state.photos3 = (state.photos3 || 0) + 1; // +1 ảnh thôi
+      earnedThisPhoto = 5000;
     }
-} else if (state.task === 2) {
-    state.photos2 = (state.photos2 || 0) + 1; // +1 ảnh thôi
-    earnedThisPhoto = 5000;
-} else if (state.task === 3) {
-    state.photos3 = (state.photos3 || 0) + 1; // +1 ảnh thôi
-    earnedThisPhoto = 5000;
-}
 
-  // Tính tổng số dư
-  state.earned = (state.photos1 ? 20000 : 0) +
-               (state.photos2 || 0) * 5000 +
-               (state.photos3 || 0) * 5000;
+    // Tính tổng số dư
+    state.earned = (state.photos1 ? 20000 : 0) +
+                   (state.photos2 || 0) * 5000 +
+                   (state.photos3 || 0) * 5000;
 
-  // báo cáo admin
-  await bot.sendMessage(
-    ADMIN_ID,
-    `📥 BÁO CÁO HOÀN THÀNH\n\n` +
-      `👤 User: ${msg.from.first_name || ""}\n` +
-      `🆔 ID: ${chatId}\n` +
-      `📌 Nhiệm vụ: Nhiệm vụ ${state.task}\n` +
-      `📷 Ảnh NV1: ${state.photos1 || 0}/1\n` +
-      `📷 Ảnh NV2: ${state.photos2 || 0}/20\n` +
-      `📷 Ảnh NV3: ${state.photos3 || 0}/20\n` +
-      `💰 Thu nhập hiện tại: ${state.earned.toLocaleString()} VND`
-  );
-
-  await bot.forwardMessage(ADMIN_ID, chatId, msg.message_id);
-
-  // thông báo user
-  if (state.task === 1) {
-    return bot.sendMessage(
-      chatId,
-      `🎉 Chúc mừng bạn đã hoàn thành nhiệm vụ 1! +${earnedThisPhoto.toLocaleString()} VND\nVui lòng bấm sang nhiệm vụ 2 để làm tiếp.\nTổng số dư: ${state.earned.toLocaleString()} VND`
+    // báo cáo admin
+    await bot.sendMessage(
+      ADMIN_ID,
+      `📥 BÁO CÁO HOÀN THÀNH\n\n` +
+        `👤 User: ${msg.from.first_name || ""}\n` +
+        `🆔 ID: ${chatId}\n` +
+        `📌 Nhiệm vụ: Nhiệm vụ ${state.task}\n` +
+        `📷 Ảnh NV1: ${state.photos1 || 0}/1\n` +
+        `📷 Ảnh NV2: ${state.photos2 || 0}/20\n` +
+        `📷 Ảnh NV3: ${state.photos3 || 0}/20\n` +
+        `💰 Thu nhập hiện tại: ${state.earned.toLocaleString()} VND`
     );
-  } else if (state.task === 2 || state.task === 3) {
-    const maxPhotos = 20;
-    const photos = state.task === 2 ? state.photos2 : state.photos3;
 
-    if (photos < maxPhotos) {
+    await bot.forwardMessage(ADMIN_ID, chatId, msg.message_id);
+
+    // thông báo user
+    if (state.task === 1) {
       return bot.sendMessage(
         chatId,
-        `📸 Đã nhận ${photos}/${maxPhotos} ảnh. Vui lòng gửi tiếp.\n+${earnedThisPhoto.toLocaleString()} VND. Số dư: ${state.earned.toLocaleString()} VND`
+        `🎉 Chúc mừng bạn đã hoàn thành nhiệm vụ 1! +${earnedThisPhoto.toLocaleString()} VND\nVui lòng bấm sang nhiệm vụ 2 để làm tiếp.\nTổng số dư: ${state.earned.toLocaleString()} VND`
       );
-    } else {
-      return bot.sendMessage(
-        chatId,
-        `🎉 Chúc mừng bạn đã hoàn thành nhiệm vụ này!\n+${earnedThisPhoto.toLocaleString()} VND. Số dư: ${state.earned.toLocaleString()} VND\nNếu muốn làm thêm gửi thêm ảnh để thêm thu nhập thì cứ tiếp tục tôi sẽ thanh toán đầy đủ cho bạn.`
-      );
+    } else if (state.task === 2 || state.task === 3) {
+      const maxPhotos = 20;
+      const photos = state.task === 2 ? state.photos2 : state.photos3;
+
+      if (photos < maxPhotos) {
+        return bot.sendMessage(
+          chatId,
+          `📸 Đã nhận ${photos}/${maxPhotos} ảnh. Vui lòng gửi tiếp.\n+${earnedThisPhoto.toLocaleString()} VND. Số dư: ${state.earned.toLocaleString()} VND`
+        );
+      } else {
+        return bot.sendMessage(
+          chatId,
+          `🎉 Chúc mừng bạn đã hoàn thành nhiệm vụ này!\n+${earnedThisPhoto.toLocaleString()} VND. Số dư: ${state.earned.toLocaleString()} VND\nNếu muốn làm thêm gửi thêm ảnh để thêm thu nhập thì cứ tiếp tục tôi sẽ thanh toán đầy đủ cho bạn.`
+        );
+      }
     }
   }
-}
 
   // ===== CHẶN TEXT KHÁC =====
-  return bot.sendMessage(
-    chatId,
-    "❌ Không thể gửi tin nhắn ở đây.\n👉 Hãy gửi ảnh hoàn thành nhiệm vụ ở đây. Có gì không hiểu vui lòng liên hệ @thuylinhnei để được giải đáp."
-  );
+  if (!msg.photo && !tasks[text] && text !== "💰 Số dư" && text !== "💸 Rút tiền") {
+    return bot.sendMessage(
+      chatId,
+      "❌ Không thể gửi tin nhắn ở đây.\n👉 Hãy gửi ảnh hoàn thành nhiệm vụ ở đây. Có gì không hiểu vui lòng liên hệ @thuylinhnei để được giải đáp."
+    );
+  }
 });
 
 console.log("BOT RUNNING OK");

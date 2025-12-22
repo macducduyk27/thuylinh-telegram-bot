@@ -189,20 +189,16 @@ bot.on("message", async (msg) => {
 if (text === "💰 Số dư") {
   let balance = 0;
 
-  if (state.task >= 1) balance += 20000; // NV1 cố định
+  // NV1
+  if (state.photos1 && state.photos1 > 0) balance += 20000;
 
-  if (state.task >= 2) {
-    balance += (state.photos >= 20 ? 20 : state.photos) * 5000; // NV2
-  }
+  // NV2
+  if (state.photos2 && state.photos2 > 0) balance += state.photos2 * 5000;
 
-  if (state.task >= 3) {
-    balance += (state.photos >= 20 ? 20 : state.photos) * 5000; // NV3
-  }
+  // NV3
+  if (state.photos3 && state.photos3 > 0) balance += state.photos3 * 5000;
 
-  // Hoặc đơn giản dùng state.earned nếu bạn đã cập nhật khi gửi ảnh
-  balance = state.earned || balance;
-
-  return bot.sendMessage(chatId, `💰 Số dư hiện tại của bạn: ${balance} VND`);
+  return bot.sendMessage(chatId, `💰 Số dư hiện tại của bạn: ${balance.toLocaleString()} VND`);
 }
 
   // ===== RÚT TIỀN =====
@@ -271,8 +267,7 @@ if (text === "💰 Số dư") {
       );
     }
 
-    state.task = taskNum;
-    state.photos = 0;
+    state.task = taskNum; // chỉ cập nhật task
 
     const task = tasks[text];
     if (typeof task === "string") {

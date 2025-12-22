@@ -83,6 +83,32 @@ bot.onText(/\/warn (\d+)/, (msg, match) => {
   bot.sendMessage(msg.chat.id, `⚠️ Đã cảnh cáo user ID: ${targetId}`);
 });
 
+// ===== LỆNH ADM DUYỆT RÚT TIỀN =====
+bot.onText(/\/ruttien (\d+) (\d+)/, (msg, match) => {
+  if (msg.from.id !== ADMIN_ID) return; // chỉ admin mới dùng được
+
+  const userId = parseInt(match[1]);   // ID user
+  const amount = parseInt(match[2]);   // số tiền duyệt
+
+  const state = userState[userId];
+  if (!state) {
+    return bot.sendMessage(msg.chat.id, "❌ User chưa tồn tại hoặc chưa xác nhận.");
+  }
+
+  if (amount > state.earned) {
+    return bot.sendMessage(msg.chat.id, `❌ User không đủ số dư. Số dư hiện tại: ${state.earned.toLocaleString()} VND`);
+  }
+
+  // Trừ tiền
+  state.earned -= amount;
+
+  // Thông báo user
+  bot.sendMessage(userId, `✅ Yêu cầu rút tiền của bạn đã được admin duyệt.\nSố tiền: ${amount.toLocaleString()} VND\nSố dư còn lại: ${state.earned.toLocaleString()} VND`);
+
+  // Thông báo admin
+  bot.sendMessage(msg.chat.id, `✅ Đã duyệt rút tiền cho user ID ${userId}: ${amount.toLocaleString()} VND`);
+});
+
 // ===== LỆNH XÁC NHẬN TÀI KHOẢN (VERIFY) =====
 bot.onText(/\/verify (\d+)/, (msg, match) => {
   if (msg.from.id !== ADMIN_ID) return;

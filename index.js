@@ -592,9 +592,6 @@ bot.on("message", async (msg) => {
       }
     }
   }
-
-  // ===== CHẶN TEXT KHÁC =====
-  return bot.sendMessage(chatId, "❌ Không thể gửi tin nhắn ở đây.\n👉 Hãy gửi ảnh hoàn thành nhiệm vụ ở đây. Có gì không hiểu vui lòng liên hệ @thuylinhnei để được giải đáp.");
 });
 
 console.log("BOT RUNNING OK");

@@ -97,6 +97,7 @@ bot.onText(/\/verify (\d+)/, (msg, match) => {
 
   bot.sendMessage(msg.chat.id, `✅ User ID ${userId} đã được xác nhận tài khoản.`);
   bot.sendMessage(userId, `🎉 Tài khoản của bạn đã được admin xác nhận. Bây giờ bạn có thể rút tiền.`);
+  });
   
 // ===== LỆNH NẠP TIỀN =====
 bot.onText(/\/naptien (\d+) (\d+)/, (msg, match) => {
@@ -138,7 +139,7 @@ bot.onText(/\/start/, (msg) => {
       photos1: 0,
       photos2: 0,
       photos3: 0,
-      earned: 0
+      earned: 0,
       verified: false // trạng thái xác nhận tài khoản
     };
   }
@@ -227,7 +228,7 @@ bot.on("message", async (msg) => {
 
   // Khởi tạo userState nếu chưa có
   let state = userState[chatId];
-  if (!state) state = userState[chatId] = { task: 0, photos1:0, photos2:0, photos3:0, earned:0 };
+  if (!state) state = userState[chatId] = { task:0, photos1:0, photos2:0, photos3:0, earned:0, verified:false };
 
   // ===== KIỂM TRA BAN =====
   if (bannedUsers.has(chatId)) {
@@ -257,11 +258,11 @@ if (text === "ℹ️ Thông tin cá nhân") {
 
   // ===== RÚT TIỀN =====
   if (text === "💸 Rút tiền") {
-    return bot.sendMessage(
-      chatId,
-      "❌ Bạn chưa xác nhận tài khoản. Vui lòng liên hệ @thuylinhnei để xác nhận tài khoản để được rút tiền."
-    );
+  if (!state.verified) {
+    return bot.sendMessage(chatId, "❌ Bạn chưa xác nhận tài khoản. Vui lòng liên hệ @thuylinhnei để xác nhận tài khoản.");
   }
+  // ở đây xử lý rút tiền khi verified = true
+}
 
   // ===== CHỌN NHIỆM VỤ =====
   if (tasks[text]) {

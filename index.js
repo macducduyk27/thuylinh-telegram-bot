@@ -250,22 +250,19 @@ if (text === "💰 Số dư") {
   }
 
   // ===== CHỌN NHIỆM VỤ =====
-  if (tasks[text]) {
-    const taskNum = text.includes("1") ? 1 : text.includes("2") ? 2 : 3;
+if (taskNum === 2 && (!state.photos1 || state.photos1 < 1)) {
+  return bot.sendMessage(
+    chatId,
+    "❌ Bạn chưa gửi đủ 1 ảnh của Nhiệm vụ 1. Vui lòng hoàn thành trước khi qua NV2."
+  );
+}
 
-    if (taskNum === 2 && (state.task < 1 || state.photos < 1)) {
-      return bot.sendMessage(
-        chatId,
-        "❌ Bạn chưa gửi đủ 1 ảnh của Nhiệm vụ 1. Vui lòng hoàn thành trước khi qua NV2."
-      );
-    }
-
-    if (taskNum === 3 && (state.task < 2 || state.photos < 20)) {
-      return bot.sendMessage(
-        chatId,
-        "❌ Bạn chưa hoàn thành đủ 20 ảnh của Nhiệm vụ 2. Vui lòng hoàn thành trước khi qua NV3."
-      );
-    }
+if (taskNum === 3 && (!state.photos2 || state.photos2 < 20)) {
+  return bot.sendMessage(
+    chatId,
+    "❌ Bạn chưa hoàn thành đủ 20 ảnh của Nhiệm vụ 2. Vui lòng hoàn thành trước khi qua NV3."
+  );
+}
 
     state.task = taskNum; // chỉ cập nhật task
 

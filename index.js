@@ -225,30 +225,25 @@ if (text === "💰 Số dư") {
   }
 
   // ===== NÚT "ĐÃ XONG" =====
-  if (text === "✅ Đã xong") {
-    if (
-      state.task < 3 ||
-      (state.task === 2 && state.photos < 20) ||
-      (state.task === 3 && state.photos < 20)
-    ) {
-      return bot.sendMessage(
-        chatId,
-        "❌ Bạn chưa hoàn thành đủ 3 nhiệm vụ. Vui lòng hoàn thành trước khi nhấn 'Đã xong'."
-      );
-    }
+if (text === "✅ Đã xong") {
+  // Kiểm tra NV1/NV2/NV3 đã hoàn thành
+  if (
+    !state.photos1 || state.photos1 < 1 ||   // NV1: cần ít nhất 1 ảnh
+    !state.photos2 || state.photos2 < 20 ||  // NV2: cần 20 ảnh
+    !state.photos3 || state.photos3 < 20     // NV3: cần 20 ảnh
+  ) {
     return bot.sendMessage(
       chatId,
-      "🎉 Chúc mừng bạn đã hoàn thành đủ 3 nhiệm vụ!\n" +
-      "⬇️ Bấm nút bên dưới để xem hướng dẫn và lấy ảnh\n" +
-      "👉 Giờ hãy nhắn cho Thuỳ Linh để báo cáo đã hoàn thành xong công việc",
-      {
-        parse_mode: "Markdown",
-        reply_markup: {
-          inline_keyboard: [[{ text: "Ấn vào đây", url: "https://t.me/thuylinhnei" }]]
-        }
-      }
+      "❌ Bạn chưa hoàn thành đủ 3 nhiệm vụ. Vui lòng hoàn thành trước khi nhấn 'Đã xong'."
     );
   }
+
+  // Thông báo hoàn thành, bỏ link và nút
+  return bot.sendMessage(
+    chatId,
+    `🎉 Chúc mừng bạn đã hoàn thành đủ 3 nhiệm vụ! Số dư hiện tại: ${state.earned.toLocaleString()} VND`
+  );
+}
 
  // ===== CHỌN NHIỆM VỤ =====
 if (tasks[text]) {

@@ -187,26 +187,14 @@ bot.on("message", async (msg) => {
   if (!state) state = userState[chatId] = { task: 0, photos: 0, earned: 0 };
 
 // ===== XEM SỐ DƯ =====
-if (text === "💰 Số dư") {
-  let balance = 0;
+  if (text === "💰 Số dư") {
+    const balance = (state.photos1 ? 20000 : 0) +
+                    (state.photos2 || 0) * 5000 +
+                    (state.photos3 || 0) * 5000;
+    return bot.sendMessage(chatId, `💰 Số dư hiện tại của bạn: ${balance.toLocaleString()} VND`);
+  }
 
-  // NV1
-  if (state.photos1 && state.photos1 > 0) balance += 20000;
-
-  // NV2
-  if (state.photos2 && state.photos2 > 0) balance += state.photos2 * 5000;
-
-  // NV3
-  if (state.photos3 && state.photos3 > 0) balance += state.photos3 * 5000;
-
-  return bot.sendMessage(chatId, `💰 Số dư hiện tại của bạn: ${balance.toLocaleString()} VND`);
-}
-
-// ===== RÚT TIỀN =====
-bot.on("message", (msg) => {
-  const chatId = msg.chat.id;
-  const text = msg.text;
-
+  // ===== RÚT TIỀN =====
   if (text === "💸 Rút tiền") {
     return bot.sendMessage(
       chatId,
@@ -258,26 +246,25 @@ if (tasks[text]) {
 }
 
   // ===== NHẬN ẢNH (CẬP NHẬT THU NHẬP) =====
-if (msg.photo) {
-  if (!state.task) return;
-
-  let earnedThisPhoto = 0;
-
-  if (state.task === 1) {
-      state.photos1 = 1;
-      earnedThisPhoto = 20000;
-  } else if (state.task === 2) {
-      state.photos2 = (state.photos2 || 0) + msg.photo.length;
-      earnedThisPhoto = 5000 * msg.photo.length;
-  } else if (state.task === 3) {
-      state.photos3 = (state.photos3 || 0) + msg.photo.length;
-      earnedThisPhoto = 5000 * msg.photo.length;
-  }
+if (state.task === 1) {
+    if (!state.photos1) {       // chỉ nhận 1 lần
+        state.photos1 = 1;
+        earnedThisPhoto = 20000;
+    } else {
+        earnedThisPhoto = 0;
+    }
+} else if (state.task === 2) {
+    state.photos2 = (state.photos2 || 0) + 1; // +1 ảnh thôi
+    earnedThisPhoto = 5000;
+} else if (state.task === 3) {
+    state.photos3 = (state.photos3 || 0) + 1; // +1 ảnh thôi
+    earnedThisPhoto = 5000;
+}
 
   // Tính tổng số dư
   state.earned = (state.photos1 ? 20000 : 0) +
-                 (state.photos2 || 0) * 5000 +
-                 (state.photos3 || 0) * 5000;
+               (state.photos2 || 0) * 5000 +
+               (state.photos3 || 0) * 5000;
 
   // báo cáo admin
   await bot.sendMessage(

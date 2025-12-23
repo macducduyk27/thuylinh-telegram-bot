@@ -85,28 +85,41 @@ bot.onText(/\/warn (\d+)/, (msg, match) => {
 
 // ===== LỆNH ADM DUYỆT RÚT TIỀN =====
 bot.onText(/\/ruttien (\d+) (\d+)/, (msg, match) => {
-  if (msg.from.id !== ADMIN_ID) return; // chỉ admin mới dùng được
+  if (msg.from.id !== ADMIN_ID) return;
 
-  const userId = parseInt(match[1]);   // ID user
-  const amount = parseInt(match[2]);   // số tiền duyệt
+  const userId = parseInt(match[1]);
+  const amount = parseInt(match[2]);
 
   const state = userState[userId];
   if (!state) {
-    return bot.sendMessage(msg.chat.id, "❌ User chưa tồn tại hoặc chưa xác nhận.");
+    return bot.sendMessage(msg.chat.id, "❌ User chưa tồn tại.");
   }
 
   if (amount > state.earned) {
-    return bot.sendMessage(msg.chat.id, `❌ User không đủ số dư. Số dư hiện tại: ${state.earned.toLocaleString()} VND`);
+    return bot.sendMessage(
+      msg.chat.id,
+      `❌ User không đủ số dư.\nSố dư hiện tại: ${state.earned.toLocaleString()} VND`
+    );
   }
 
-  // Trừ tiền
+  // ✅ DUYỆT RÚT
   state.earned -= amount;
+  state.withdrawStep = 0;
+  state.withdrawAmount = 0;
+  state.withdrawInfo = "";
 
-  // Thông báo user
-  bot.sendMessage(userId, `✅ Yêu cầu rút tiền của bạn đã được admin duyệt.\nSố tiền: ${amount.toLocaleString()} VND\nSố dư còn lại: ${state.earned.toLocaleString()} VND`);
+  // báo user
+  bot.sendMessage(
+    userId,
+    `✅ Yêu cầu rút *${amount.toLocaleString()} VND* đã được duyệt.\nVui lòng chờ thanh toán 💸`,
+    { parse_mode: "Markdown" }
+  );
 
-  // Thông báo admin
-  bot.sendMessage(msg.chat.id, `✅ Đã duyệt rút tiền cho user ID ${userId}: ${amount.toLocaleString()} VND`);
+  // báo admin
+  bot.sendMessage(
+    msg.chat.id,
+    `✔️ Đã duyệt rút ${amount.toLocaleString()} VND cho user ${userId}`
+  );
 });
 
 // ===== LỆNH XÁC NHẬN TÀI KHOẢN (VERIFY) =====
@@ -487,9 +500,7 @@ bot.on("message", async (msg) => {
 
   // ===== THÔNG TIN CÁ NHÂN =====
   if (text === "ℹ️ Thông tin cá nhân") {
-    const balance = (state.photos1 ? 20000 : 0) +
-                    (state.photos2 || 0) * 5000 +
-                    (state.photos3 || 0) * 5000;
+    const balance = state.earned || 0;
 
     return bot.sendMessage(
       chatId,
@@ -501,9 +512,7 @@ bot.on("message", async (msg) => {
 
   // ===== XEM SỐ DƯ =====
   if (text === "💰 Số dư") {
-    const balance = (state.photos1 ? 20000 : 0) +
-                    (state.photos2 || 0) * 5000 +
-                    (state.photos3 || 0) * 5000;
+    const balance = state.earned || 0;
     return bot.sendMessage(chatId, `💰 Số dư hiện tại của bạn: ${balance.toLocaleString()} VND`);
   }
 
@@ -583,10 +592,7 @@ bot.on("message", async (msg) => {
       state.photos3 = (state.photos3 || 0) + 1;
       earnedThisPhoto = 5000;
     }
-
-    state.earned = (state.photos1 ? 20000 : 0) +
-                   (state.photos2 || 0) * 5000 +
-                   (state.photos3 || 0) * 5000;
+    state.earned += earnedThisPhoto;
 
     await bot.sendMessage(
       ADMIN_ID,

@@ -106,8 +106,9 @@ bot.onText(/\/start(?: (\d+))?/, (msg, match) => {
 
 🎁 ƯU ĐÃI NGƯỜI DÙNG MỚI
 👉 Tặng ngay 30,000 VND
-📩 Nhắn trong BOT: /code 30ktrainghiem
+📩 Nhắn cho admin xin code thầnh viên mới
    Sẽ được cộng trực tiếp để tham gia trò chơi.
+   Liên hệ: @xucxacadmin
   
 
 📌 Gõ /huongdanchoi để xem hướng dẫn chi tiết
